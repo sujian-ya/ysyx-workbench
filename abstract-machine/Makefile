@@ -1,4 +1,6 @@
 # Makefile for AbstractMachine Kernels and Libraries
+STUID = ysyx_25040105  # your student ID
+STUNAME = sheep    # your Chinese name
 
 ### *Get a more readable version of this Makefile* by `make html` (requires python-markdown)
 html:
