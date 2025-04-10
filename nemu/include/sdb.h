@@ -12,24 +12,22 @@
 *
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
-#include <sdb.h>
+
+#ifndef __SDB_H__
+#define __SDB_H__
+
 #include <common.h>
 
-void init_monitor(int, char *[]);
-void am_init_monitor();
-void engine_start();
-int is_exit_status_bad();
+word_t expr(char *e, bool *success);
 
-int main(int argc, char *argv[]) {
-  /* Initialize the monitor. */
-#ifdef CONFIG_TARGET_AM
-  am_init_monitor();
-#else
-  init_monitor(argc, argv);
+void create_watchpoint(char* args);
+void delete_watchpoint(int no);
+void sdb_watchpoint_display();
+
+#ifdef CONFIG_WATCHPOINT
+void check_watchpoint();
 #endif
 
-  /* Start engine. */
-  engine_start();
+#endif
 
-  return is_exit_status_bad();
-}
+

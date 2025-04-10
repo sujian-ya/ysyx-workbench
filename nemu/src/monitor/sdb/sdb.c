@@ -13,11 +13,13 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include <cpu/decode.h>
 #include <isa.h>
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include <memory/paddr.h> /*include paddr_read function*/
 
 static int is_batch_mode = false;
 
@@ -49,10 +51,85 @@ static int cmd_c(char *args) {
 
 
 static int cmd_q(char *args) {
+	nemu_state.state = NEMU_QUIT;
   return -1;
 }
 
 static int cmd_help(char *args);
+
+static int cmd_si(char* args) {
+	int N;
+	if (args == NULL) N = 1;
+	else sscanf(args, "%d", &N);
+	cpu_exec(N);
+	return 0;
+}
+
+static int cmd_info(char* args) {
+	if (args == NULL) printf("No args.\n");
+	if (strcmp(args, "r") == 0) isa_reg_display();
+	if (strcmp(args, "w") == 0) sdb_watchpoint_display();
+	return 0;
+}
+
+static int cmd_d (char* args) {
+	if (args == NULL) {
+		printf("No args\n");
+		return 0;
+	}
+	char *num_str = strtok(args, " ");
+	while (num_str != NULL) {
+		int num = atoi(num_str);
+		delete_watchpoint(num);
+		num_str = strtok(NULL, " ");
+	}
+	//else delete_watchpoint(atoi(args));
+	return 0;
+}
+
+static int cmd_w(char* args) {
+	if (args == NULL) printf("No args.\n");
+	create_watchpoint(args);
+	return 0;
+}
+
+static int cmd_x(char* args){
+	char *num_str = strtok(args, " ");
+	int num = atoi(num_str);
+	char *expr_str = args + strlen(num_str) + 1;
+	bool success = true;
+	uint32_t expr_num = (uint32_t)expr(expr_str, &success);
+	if (!success) { 
+		printf("Calculating error\n");
+		return 0;
+	}
+	printf("Scaning memory and corresponding value\n");
+	printf("%-12s %-12s %-12s %-12s\n", "PC", "Address", "int32_t", "uint32_t");
+	for (int i = 0; i < num; i++) {
+		uint32_t mem = expr_num + 4 * i;
+		paddr_t value = paddr_read(mem, 4);
+		printf("0x%-10x 0x%-10x %-12d 0x%-10x\n", cpu.pc, mem, (uint32_t)value, (int32_t)value);
+	}
+	return 0;
+}
+
+static int cmd_p(char* args) {
+	if (args == NULL) {
+		printf("No expression provided.\n");
+		return 0;
+	}
+	bool success = true;
+	//word_t result = expr(args, &success);
+	int32_t result = (int32_t)expr(args, &success);
+
+	if (success) {
+		//printf("%u\n", result);
+		printf("%d (0x%x)\n", result, result);
+	} else {
+		printf("Error evaluating expression.\n");
+	}
+	return 0;
+}
 
 static struct {
   const char *name;
@@ -62,6 +139,12 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+	{ "si", "Let the proaram pause exection after running N instructions step by step.When N is not given, it defaults to 1", cmd_si },
+	{ "info", "Print register status - r, print watchpoint information - w", cmd_info },
+	{ "x", "Calculate the value of the expression EXPR, and use the result as the starting memory address, output the continous N bytes in hexadecimal format.Usage: x N EXPR", cmd_x },
+	{ "p", "Evaluate the expression EXPR.", cmd_p },
+	{ "w", "Set watchpoints.When the value of the expression EXPR changes, pause the program execution", cmd_w},
+	{ "d", "Delete the watchpoint with serial number N", cmd_d},
 
   /* TODO: Add more commands */
 
@@ -112,6 +195,7 @@ void sdb_mainloop() {
     /* treat the remaining string as the arguments,
      * which may need further parsing
      */
+		/* '+ 1': skip space*/
     char *args = cmd + strlen(cmd) + 1;
     if (args >= str_end) {
       args = NULL;
