@@ -33,11 +33,13 @@ void read_file() {
 		if (sscanf(line, "%u %65536[^\n]", &gen_num, expr_str) == 2) {
 			bool success = true;
 			expr_num =  (uint32_t)expr(expr_str, &success);
-			printf("%04d:  gen-expr: 0x%-10x expr: 0x%-10x expr_str: %s\n",
-					cnt++, gen_num, expr_num, expr_str);
-		}
-		else {
-			printf("%04d: no diffenence\n", cnt++);
+			if (gen_num != expr_num) {
+				printf("%04d:  gen-expr: 0x%-10x expr: 0x%-10x expr_str: %s\n",
+						cnt++, gen_num, expr_num, expr_str);
+			}
+			else {
+				printf("%04d: no diffenence\n", cnt++);
+			}
 		}
 	}
 
@@ -57,11 +59,11 @@ int main(int argc, char *argv[]) {
   init_monitor(argc, argv);
 #endif
 
-  /* Start engine. */
-  engine_start();
-
 	/* Compare expression value */
 	read_file();
+
+  /* Start engine. */
+  engine_start();
 
   return is_exit_status_bad();
 }
