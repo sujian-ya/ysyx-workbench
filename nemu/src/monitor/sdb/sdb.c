@@ -78,6 +78,8 @@ static int cmd_d (char* args) {
 		return 0;
 	}
 	char *num_str = strtok(args, " ");
+	printf("Deleting watchpoint:\n");
+	printf("%-12s %-12s %-12s %-12s %-12s\n","PC","Watchpoint","int32_t","uint32_t","expression");
 	while (num_str != NULL) {
 		int num = atoi(num_str);
 		delete_watchpoint(num);
@@ -103,7 +105,7 @@ static int cmd_x(char* args){
 		printf("Calculating error\n");
 		return 0;
 	}
-	printf("Scaning memory and corresponding value\n");
+	printf("Scaning memory and displaying corresponding value:\n");
 	printf("%-12s %-12s %-12s %-12s\n", "PC", "Address", "int32_t", "uint32_t");
 	for (int i = 0; i < num; i++) {
 		uint32_t mem = expr_num + 4 * i;
@@ -120,14 +122,14 @@ static int cmd_p(char* args) {
 	}
 	bool success = true;
 	//word_t result = expr(args, &success);
-	int32_t result = (int32_t)expr(args, &success);
-
-	if (success) {
-		//printf("%u\n", result);
-		printf("%d (0x%x)\n", result, result);
-	} else {
+	int32_t val = (int32_t)expr(args, &success);
+	if (!success) {
 		printf("Error evaluating expression.\n");
 	}
+
+	printf("Calculating expression:\n");
+	printf("%-12s %-12s %-12s %-20s\n", "PC", "int32_t", "uint32_t", "expression");
+	printf("0x%-10x %-12d 0x%-10x %s\n", cpu.pc, (int32_t)val, (uint32_t)val, args);
 	return 0;
 }
 

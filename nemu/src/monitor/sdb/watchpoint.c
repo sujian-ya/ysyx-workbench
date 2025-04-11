@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include <cpu/decode.h>
 #include "sdb.h"
 #include <common.h>
 
@@ -91,10 +92,6 @@ void free_wp(WP *wp) {
 }
 
 void create_watchpoint(char* args) {
-	if (args == NULL || *args == '\0') {
-		printf("Usage: w EXPR\n");
-		return ;
-	}
 	WP *new = new_wp();
 	if (new == NULL) return;
 
@@ -109,8 +106,10 @@ void create_watchpoint(char* args) {
 		return;
 	}
 
-	printf("Watchpoint: %02d\texpr: %-16s value: %d (0x%x)\n",
-			new->NO, new->expr, (int32_t)new->value, new->value);
+	printf("Creating watchpoint:\n");
+	printf("%-12s %-12s %-12s %-12s %-12s\n","PC","Watchpoint","int32_t","uint32_t","expression");
+	printf("0x%-10x %-12d %-12d 0x%-10x %s\n",
+			cpu.pc, new->NO, (int32_t)new->value, (uint32_t)new->value, new->expr);
 }
 
 void delete_watchpoint(int no) {
@@ -119,13 +118,14 @@ void delete_watchpoint(int no) {
 	while (current != NULL) {
 		if (current->NO == no) {
 			free_wp(current);
-			printf("Deleted watchpoint %02d\n", no);
+			printf("0x%-10x %-12d %-12d 0x%-10x %s\n",
+					cpu.pc, current->NO, (int32_t)current->value, (uint32_t)current->value, current->expr);
 			return;
 		}
 		current = current->next;
 	}
 
-	printf("Watchpoint %02d not found.\n", no);
+	printf("0x%-10x %-12d (no found watchpoint)\n", cpu.pc, no);
 }
 
 void sdb_watchpoint_display() {
@@ -135,20 +135,24 @@ void sdb_watchpoint_display() {
 	}
 
 	WP *current = head;
+	printf("Displaying watchpoint:\n");
+	printf("%-12s %-12s %-12s %-12s %-12s\n","PC","Watchpoint","int32_t","uint32_t","expression");
 	while (current != NULL) {
-		printf("Watchpoint: %02d\texpr: %-16s value: %d (0x%x)\n",
-			 	current->NO, current->expr, (int32_t)current->value, current->value);
+		printf("0x%-10x %-12d %-12d 0x%-10x %s\n",
+			 	cpu.pc, current->NO, (int32_t)current->value, (uint32_t)current->value, current->expr);
 		current = current->next;
 	}
 }
 
 #ifdef CONFIG_WATCHPOINT
-void check_watchpoint() {
-	printf("Checking watchpoint...\n");
+void check_watchpoint(void) {
 	if (nemu_state.state == NEMU_END) {
 		return;
 	}
-	for (WP *wp = head; wp; wp = wp->next) {
+	int cnt = 0;
+	printf("\nChecking watchpoint:\n");
+	printf("%-12s %-12s %-12s %-12s\n","PC","Watchpoint","Old_value","New_value");
+	for (WP *wp = head; wp; wp = wp->next, cnt++) {
 		bool success = true;
 		word_t cur_value = expr(wp->expr, &success);
 
@@ -159,13 +163,16 @@ void check_watchpoint() {
 
 		if (cur_value != wp->value) {
 			nemu_state.state = NEMU_STOP;
-			printf("Watchpoint: %02d\texpr: %-16s Old value: 0x%x\tNew value: 0x%x\n",
-					wp->NO, wp->expr, wp->value, cur_value);
+			printf("0x%-10x %-12d 0x%-10x 0x%-10x\n",
+					cpu.pc, wp->NO, (uint32_t)wp->value, (uint32_t)cur_value);
 			wp->value = cur_value;
 		} else {
-			printf("Watchpoint: %02d (No change)\n", wp->NO);
+			printf("0x%-10x %-12d (no change)\n", cpu.pc, wp->NO);
 			nemu_state.state = NEMU_RUNNING;
 		}
+	}
+	if (!cnt) {
+		printf("0x%-10x (no watchpoint)\n", cpu.pc);
 	}
 	return;
 }
