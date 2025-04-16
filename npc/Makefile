@@ -1,3 +1,4 @@
+# ps2_keyboard shift_seg.v
 TOPNAME = ps2_keyboard
 NXDC_FILES = constr/$(TOPNAME).nxdc
 INC_PATH ?=
@@ -17,10 +18,10 @@ $(shell mkdir -p $(BUILD_DIR))
 # constraint file
 SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
 $(SRC_AUTO_BIND): $(NXDC_FILES)
-	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
+	@python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
 
 # project source
-VSRCS = $(shell find $(abspath ./vsrc) -name "$(TOPNAME).v")
+VSRCS = $(shell find $(abspath ./vsrc) -name "*.v")
 CSRCS = $(shell find $(abspath ./csrc) -name "$(TOPNAME).c" -or -name "$(TOPNAME).cc" -or -name "$(TOPNAME).cpp")
 CSRCS += $(SRC_AUTO_BIND)
 
@@ -34,16 +35,15 @@ CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
 $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ_DIR)
-	$(VERILATOR) $(VERILATOR_CFLAGS) \
+	@$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $^ \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))  > /dev/null 2>&1
 
 all: default
 
 run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	@echo "Write this Makefile by your self."
 	@$^
 
 clean:
