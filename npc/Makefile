@@ -1,5 +1,5 @@
-# ps2_keyboard shift_seg.v
-TOPNAME = ps2_keyboard
+# ps2_keyboard shift_seg.v shift_seg
+TOPNAME = shift_seg
 NXDC_FILES = constr/$(TOPNAME).nxdc
 INC_PATH ?=
 
@@ -38,7 +38,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $^ \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))  > /dev/null 2>&1
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) # > /dev/null 2>&1
 
 all: default
 
