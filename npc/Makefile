@@ -1,5 +1,5 @@
-# ps2_keyboard shift_seg.v shift_seg ALU
-TOPNAME = ALU
+# ps2_keyboard shift_seg.v shift_seg ALU prior_encoder
+TOPNAME = prior_encoder
 NXDC_FILES = constr/$(TOPNAME).nxdc
 INC_PATH ?=
 
