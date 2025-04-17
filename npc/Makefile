@@ -1,5 +1,5 @@
-# ps2_keyboard shift_seg.v shift_seg
-TOPNAME = shift_seg
+# ps2_keyboard shift_seg.v shift_seg ALU
+TOPNAME = ALU
 NXDC_FILES = constr/$(TOPNAME).nxdc
 INC_PATH ?=
 
