@@ -1,5 +1,5 @@
-# ps2_keyboard shift_seg.v shift_seg ALU prior_encoder selector
-TOPNAME = selector
+# ps2_keyboard shift_seg.v shift_seg ALU prior_encoder selector waterfall_light
+TOPNAME = waterfall_light
 NXDC_FILES = constr/$(TOPNAME).nxdc
 INC_PATH ?=
 
