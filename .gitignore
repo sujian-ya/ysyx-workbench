@@ -5,7 +5,8 @@
 !/nexus-am/*
 !/nanos-lite/*
 !/navy-apps/*
-!/npc/*
+# 忽略npc
+# !/npc/*
 !Makefile
 !README.md
 !.gitignore
