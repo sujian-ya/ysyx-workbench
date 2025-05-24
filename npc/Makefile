@@ -1,5 +1,5 @@
 # ps2_keyboard shift_seg.v shift_seg ALU prior_encoder selector waterfall_light switch
-TOPNAME = switch
+TOPNAME = ysyx_25040105_soc_top
 NXDC_FILES = constr/$(TOPNAME).nxdc
 INC_PATH ?=
 
@@ -26,7 +26,6 @@ CSRCS = $(shell find $(abspath ./csrc) -name "$(TOPNAME).c" -or -name "$(TOPNAME
 CSRCS += $(SRC_AUTO_BIND)
 
 # rules for NVBoard
-# include $(NVBOARD_HOME)/scripts/nvboard.mk
 include /home/sheep/ysyx-workbench/nvboard/scripts/nvboard.mk
 
 # rules for verilator
@@ -38,7 +37,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $^ \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) # > /dev/null 2>&1
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
 all: default
 
@@ -46,9 +45,34 @@ run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@$^
 
+########## Simulation
+BIN_SIM = $(BUILD_DIR)/$(TOPNAME)_sim
+CSRCS_SIM = $(filter-out $(SRC_AUTO_BIND), $(CSRCS))  # 排除自动绑定的文件
+
+sim: $(BIN_SIM)
+
+$(BIN_SIM): $(VSRCS) $(CSRCS_SIM)
+	@rm -rf $(OBJ_DIR)
+	@$(VERILATOR) $(VERILATOR_CFLAGS) \
+		--trace \
+		--top-module $(TOPNAME) $^ \
+		$(addprefix -CFLAGS , $(CXXFLAGS) -I$(abspath ./vsrc)) \
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN_SIM))
+	@$(MAKE) -j -C $(OBJ_DIR) -f V$(TOPNAME).mk
+	@mkdir -p $(BUILD_DIR)  # 确保build目录存在
+
+run-sim: $(BIN_SIM)
+	$(call git_commit, "sim RTL without NVBoard")
+	@$(BIN_SIM)  # 直接运行生成的可执行文件
+
+wave: run-sim
+	@gtkwave waveform.vcd
+########
+
 clean:
 	rm -rf $(BUILD_DIR)
-
-.PHONY: default all clean run
+	rm -rf waveform.vcd
+	
+.PHONY: default all clean run sim run-sim wave
 
 include ../Makefile
