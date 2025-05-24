@@ -3,7 +3,7 @@ module ysyx_25040105_soc_top (
     input rst           /* verilator public */,
     input [31:0] inst   /* verilator public */,
     output [31:0] pc    /* verilator public */,
-    output reg [31:0] rf    [31:0]
+    output reg [31:0] rf    [31:0] // 便于查看寄存器波形
 );
 
 // IFU
