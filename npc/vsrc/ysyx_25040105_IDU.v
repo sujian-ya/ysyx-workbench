@@ -6,6 +6,20 @@ module ysyx_25040105_IDU (
     output [31:0]   imm     ,
     output          reg_wen
 );
+
+    // 导入DPI-C函数
+    import "DPI-C" function void ebreak_handler();
+
+    // 指令解析逻辑（简化为示例，需根据实际指令集调整）
+    wire is_ebreak = (inst == 32'h00100073); // 检测ebreak指令
+
+    // 在时钟边沿或组合逻辑中调用ebreak_handler
+    always @(*) begin
+        if (is_ebreak) begin
+            ebreak_handler(); // 检测到ebreak时调用
+        end
+    end
+
     wire [6:0] opcode = inst[6:0];
     wire [2:0] funct3 = inst[14:12];
     wire [6:0] funct7 = inst[31:25];
