@@ -10,12 +10,14 @@ size_t strlen(const char *s) {
     p++;
   }
   return p - s;
+  panic("Not implemented");
 }
 
 char *strcpy(char *dst, const char *src) {
   char *d = dst;
   while ((*d++ = *src++) != '\0');
   return dst;
+  panic("Not implemented");
 }
 
 char *strncpy(char *dst, const char *src, size_t n) {
@@ -28,6 +30,7 @@ char *strncpy(char *dst, const char *src, size_t n) {
     d++;
   }
   return dst;
+  panic("Not implemented");
 }
 
 char *strcat(char *dst, const char *src) {
@@ -37,6 +40,7 @@ char *strcat(char *dst, const char *src) {
   }
   while ((*d++ = *src++) != '\0');
   return dst;
+  panic("Not implemented");
 }
 
 int strcmp(const char *s1, const char *s2) {
@@ -45,6 +49,7 @@ int strcmp(const char *s1, const char *s2) {
     s2++;
   }
   return *(const unsigned char *)s1 - *(const unsigned char *)s2;
+  panic("Not implemented");
 }
 
 int strncmp(const char *s1, const char *s2, size_t n) {
@@ -59,6 +64,7 @@ int strncmp(const char *s1, const char *s2, size_t n) {
     s2++;
   }
   return 0;
+  panic("Not implemented");
 }
 
 void *memset(void *s, int c, size_t n) {
@@ -67,6 +73,7 @@ void *memset(void *s, int c, size_t n) {
     *p++ = (unsigned char)c;
   }
   return s;
+  panic("Not implemented");
 }
 
 void *memmove(void *dst, const void *src, size_t n) {
@@ -85,6 +92,7 @@ void *memmove(void *dst, const void *src, size_t n) {
     }
   }
   return dst;
+  panic("Not implemented");
 }
 
 void *memcpy(void *out, const void *in, size_t n) {
@@ -94,6 +102,7 @@ void *memcpy(void *out, const void *in, size_t n) {
     *d++ = *s++;
   }
   return out;
+  panic("Not implemented");
 }
 
 int memcmp(const void *s1, const void *s2, size_t n) {
@@ -107,6 +116,7 @@ int memcmp(const void *s1, const void *s2, size_t n) {
     p2++;
   }
   return 0;
+  panic("Not implemented");
 }
 
 #endif
