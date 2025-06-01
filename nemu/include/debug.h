@@ -20,6 +20,18 @@
 #include <stdio.h>
 #include <utils.h>
 
+// 定义环形缓冲区大小
+#define IRINGBUF_SIZE 16
+
+// 定义环形缓冲区结构
+typedef struct {
+  char logbuf[128];  // 每条指令的日志信息
+} IringbufEntry;
+
+// 声明外部变量
+extern IringbufEntry iringbuf[IRINGBUF_SIZE];  
+extern int iringbuf_index;
+
 #define Log(format, ...) \
     _Log(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", \
         __FILE__, __LINE__, __func__, ## __VA_ARGS__)

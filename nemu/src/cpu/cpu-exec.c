@@ -18,6 +18,7 @@
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
 #include <locale.h>
+#include <debug.h>
 
 /* The assembly code of instructions executed is only output to the screen
  * when the number of instructions executed is less than this value.
@@ -33,9 +34,34 @@ static bool g_print_step = false;
 
 void device_update();
 
+// 定义环形缓冲区
+IringbufEntry iringbuf[IRINGBUF_SIZE];
+int iringbuf_index = 0;
+
+void display_iringbuf() {
+  printf("\nInstructon ring buffer:\n");
+  int i;
+  for (i = 0; i < IRINGBUF_SIZE; i++) {
+    int idx = (iringbuf_index + i) % IRINGBUF_SIZE;
+    if (iringbuf[idx].logbuf[0] != '\0') {
+      if (i == IRINGBUF_SIZE - 1) {
+        printf("--> %s\n", iringbuf[idx].logbuf); // 最后一条指令
+      } else {
+        printf("    %s\n", iringbuf[idx].logbuf);
+      }
+    }
+  }
+}
+
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
-  if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
+  // if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
+  if (ITRACE_COND) { 
+    // 将指令信息写入环形缓冲区
+    strcpy(iringbuf[iringbuf_index].logbuf, _this->logbuf);
+    iringbuf_index = (iringbuf_index + 1) % IRINGBUF_SIZE;
+    log_write("%s\n", _this->logbuf);
+  }
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
@@ -103,6 +129,7 @@ void assert_fail_msg() {
 /* Simulate how the CPU works. */
 void cpu_exec(uint64_t n) {
   g_print_step = (n < MAX_INST_TO_PRINT);
+  // 执行前的状态检查
   switch (nemu_state.state) {
     case NEMU_END: case NEMU_ABORT: case NEMU_QUIT:
       printf("Program execution has ended. To restart the program, exit NEMU and run again.\n");
@@ -116,11 +143,13 @@ void cpu_exec(uint64_t n) {
 
   uint64_t timer_end = get_time();
   g_timer += timer_end - timer_start;
-
+  // 执行后的状态检查
   switch (nemu_state.state) {
     case NEMU_RUNNING: nemu_state.state = NEMU_STOP; break;
-
-    case NEMU_END: case NEMU_ABORT:
+    case NEMU_ABORT:
+      // 出现指令执行异常时会调用此函数打印iringbuf
+      display_iringbuf();
+    case NEMU_END:
       Log("nemu: %s at pc = " FMT_WORD,
           (nemu_state.state == NEMU_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :
            (nemu_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :
