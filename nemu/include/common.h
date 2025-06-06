@@ -50,4 +50,11 @@ typedef uint16_t ioaddr_t;
 
 #include <debug.h>
 
+// 添加mtrace相关宏
+#ifdef CONFIG_MTRACE_COND
+#define MTRACE_COND (CONFIG_MTRACE_COND)
+#else
+#define MTRACE_COND (true)
+#endif
+
 #endif

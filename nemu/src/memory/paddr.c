@@ -50,15 +50,53 @@ void init_mem() {
   Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
 
+// mtrace函数 
+static void log_mtrace(bool is_write, paddr_t addr, int len, word_t data) {
+#ifdef CONFIG_MTRACE
+  if (addr >= CONFIG_MTRACE_START && addr <= CONFIG_MTRACE_END) {
+    char buf[128];
+    if (is_write) {
+      switch(len) {
+        //FMT_PADDR是一个宏，用于格式化物理地址
+        case 1:   snprintf(buf, sizeof(buf), "write @ " FMT_PADDR ": 0x%02x", addr, (uint32_t)data & 0xFF);     break;
+        case 2:   snprintf(buf, sizeof(buf), "write @ " FMT_PADDR ": 0x%04x", addr, (uint32_t)data & 0xFFFF);   break;
+        case 4:   snprintf(buf, sizeof(buf), "write @ " FMT_PADDR ": 0x%08x", addr, (uint32_t)data);            break;
+        case 8:   snprintf(buf, sizeof(buf), "write @ " FMT_PADDR ": 0x%016" PRIx64, addr, (uint64_t)data);     break;
+        default:  snprintf(buf, sizeof(buf), "write @ " FMT_PADDR ": unknown len %d", addr, len);               break;
+      }
+    } else {
+      switch(len) {
+        case 1:   snprintf(buf, sizeof(buf), "read  @ " FMT_PADDR ": = 0x%02x", addr, (uint32_t)data & 0xFF);   break;
+        case 2:   snprintf(buf, sizeof(buf), "read  @ " FMT_PADDR ": = 0x%04x", addr, (uint32_t)data & 0xFFFF); break;
+        case 4:   snprintf(buf, sizeof(buf), "read  @ " FMT_PADDR ": = 0x%08x", addr, (uint32_t)data);          break;
+        case 8:   snprintf(buf, sizeof(buf), "read  @ " FMT_PADDR ": = 0x%016" PRIx64, addr, (uint64_t)data);   break;
+        default:  snprintf(buf, sizeof(buf), "read  @ " FMT_PADDR ": unknown len %d", addr, len);               break;
+      }
+    }
+    log_write("%s\n", buf);
+  }
+#endif
+}
+
+/* Memory accessing interfaces */
+
 word_t paddr_read(paddr_t addr, int len) {
-  if (likely(in_pmem(addr))) return pmem_read(addr, len);
+  if (likely(in_pmem(addr))) {
+    word_t ret = pmem_read(addr, len);
+    log_mtrace(false, addr, len, ret); // 记录读操作
+    return ret;
+  }
   IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
   out_of_bound(addr);
   return 0;
 }
 
 void paddr_write(paddr_t addr, int len, word_t data) {
-  if (likely(in_pmem(addr))) { pmem_write(addr, len, data); return; }
+  if (likely(in_pmem(addr))) {
+    log_mtrace(true, addr, len, data); // 记录写操作
+    pmem_write(addr, len, data);
+    return;
+  }
   IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
   out_of_bound(addr);
 }
