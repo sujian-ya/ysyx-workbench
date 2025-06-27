@@ -135,7 +135,8 @@ void init_monitor(int argc, char *argv[]) {
 
   IFDEF(CONFIG_ITRACE, init_disasm());
 
-  IFDEF(CONFIG_FTRACE, init_elf(elf_file));
+  // IFDEF(CONFIG_FTRACE, init_elf(elf_file));
+  init_elf(elf_file);
 
   /* Display welcome message. */
   welcome();

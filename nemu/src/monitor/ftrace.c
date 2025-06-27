@@ -8,7 +8,6 @@
 static vaddr_t call_stack[STACK_DEPTH];
 // 记录函数调用栈的深度
 static int stack_ptr = -1;
-#endif
 
 #define SYM_NUM 1024
 static struct {
@@ -16,13 +15,14 @@ static struct {
     char name[64];
 } sym_table[SYM_NUM];
 static int sym_count = 0;
+#endif
+
 
 long load_elf(const char *elf_file) {
     if (!elf_file) {
         Log("No elf is given. Use the default build-in elf.");
         return 0; // built-in elf size
     }
-
     FILE *fp = fopen(elf_file, "rb");
     if (!fp) {
         log_write("Can not open '%s'", elf_file);
@@ -43,7 +43,7 @@ void init_elf(const char *elf_file) {
     if (load_ret == 0) {
         return;
     }
-
+#ifdef FTRACE_COND
     FILE *fp = fopen(elf_file, "rb");
     if (!fp) {
         log_write("Failed to open ELF file for init: %s\n", elf_file);
@@ -132,6 +132,7 @@ void init_elf(const char *elf_file) {
 
     fclose(fp);
     return;
+#endif
 }
 
 #ifdef FTRACE_COND
