@@ -180,6 +180,19 @@ config MTRACE_END
   default 0x87ffffff
 ############
 
+############
+# 添加ftrace配置
+config FTRACE 
+  depends on TRACE && !TARGET_AM
+  bool "Enable function call tracer"
+  default n
+
+config FTRACE_COND
+  depends on FTRACE
+  string "Only trace function calls when the condition is true"
+  default "true"
+# ############
+
 config DIFFTEST
   depends on TARGET_NATIVE_ELF
   bool "Enable differential testing"

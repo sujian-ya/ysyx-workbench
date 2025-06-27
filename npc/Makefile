@@ -45,7 +45,7 @@ run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@$^
 
-########## Simulation
+########## Wave Simulation
 BIN_SIM = $(BUILD_DIR)/$(TOPNAME)_sim
 CSRCS_SIM = $(filter-out $(SRC_AUTO_BIND), $(CSRCS))  # 排除自动绑定的文件
 

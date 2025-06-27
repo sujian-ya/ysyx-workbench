@@ -53,8 +53,11 @@ typedef uint16_t ioaddr_t;
 // 添加mtrace相关宏
 #ifdef CONFIG_MTRACE_COND
 #define MTRACE_COND (CONFIG_MTRACE_COND)
-#else
-#define MTRACE_COND (true)
+#endif
+
+// 添加ftrace相关宏
+#ifdef CONFIG_FTRACE_COND
+#define FTRACE_COND (CONFIG_FTRACE_COND)
 #endif
 
 #endif
