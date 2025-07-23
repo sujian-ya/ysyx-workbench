@@ -49,8 +49,6 @@ run: $(BIN)
 BIN_SIM = $(BUILD_DIR)/$(TOPNAME)_sim
 CSRCS_SIM = $(filter-out $(SRC_AUTO_BIND), $(CSRCS))  # 排除自动绑定的文件
 
-sim: $(BIN_SIM)
-
 $(BIN_SIM): $(VSRCS) $(CSRCS_SIM)
 	@rm -rf $(OBJ_DIR)
 	@$(VERILATOR) $(VERILATOR_CFLAGS) \
@@ -61,11 +59,11 @@ $(BIN_SIM): $(VSRCS) $(CSRCS_SIM)
 	@$(MAKE) -j -C $(OBJ_DIR) -f V$(TOPNAME).mk
 	@mkdir -p $(BUILD_DIR)  # 确保build目录存在
 
-run-sim: $(BIN_SIM)
+sim: $(BIN_SIM)
 	$(call git_commit, "sim RTL without NVBoard")
 	@$(BIN_SIM)  # 直接运行生成的可执行文件
 
-wave: run-sim
+wave: sim
 	@gtkwave waveform.vcd
 ########
 
