@@ -46,6 +46,11 @@ run: $(BIN)
 	@$^
 
 ########## Wave Simulation
+# 定义cpu_tests的路径
+BIN_FILES_PATH ?= /home/sheep/ysyx-workbench/am-kernels/tests/cpu-tests/build
+# 获取该路径下所有.bin文件
+BIN_FILES = $(wildcard $(BIN_FILES_PATH)/*.bin)
+
 BIN_SIM = $(BUILD_DIR)/$(TOPNAME)_sim
 CSRCS_SIM = $(filter-out $(SRC_AUTO_BIND), $(CSRCS))  # 排除自动绑定的文件
 
@@ -59,11 +64,11 @@ $(BIN_SIM): $(VSRCS) $(CSRCS_SIM)
 	@$(MAKE) -j -C $(OBJ_DIR) -f V$(TOPNAME).mk
 	@mkdir -p $(BUILD_DIR)  # 确保build目录存在
 
-sim: $(BIN_SIM)
+sim: $(BIN_SIM) $(BIN_FILES)
 	$(call git_commit, "sim RTL without NVBoard")
-	@$(BIN_SIM)  # 直接运行生成的可执行文件
+	@$(BIN_SIM)  $(BIN_FILES)
 
-wave: sim
+wave: $(BIN_SIM)
 	@gtkwave waveform.vcd
 ########
 

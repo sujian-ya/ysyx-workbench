@@ -5,6 +5,6 @@ module ysyx_25040105_EXU(
     output [31:0] alu_result
 );
 
-    assign alu_result = rs1_data + imm;
+    assign alu_result = rs1_data + imm; // ADDI
 
 endmodule

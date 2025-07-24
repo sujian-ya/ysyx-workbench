@@ -6,7 +6,7 @@
 #include "verilated_vcd_c.h"
 #include "Vysyx_25040105_soc_top.h"
 
-#define PMEM_SIZE (1024 * 1024)
+#define PMEM_SIZE (128 * 1024 * 1024) // 内存地址：0x80000000 -- > 0x87ffffff
 uint32_t pmem[PMEM_SIZE];
 
 // 仿真退出标志
@@ -25,20 +25,63 @@ uint32_t pmem_read(uint32_t addr) {
     return pmem[index];
 }
 
-void pmem_init() {
+void pmem_init(const char* bin_file) {
+    // 初始化内存
     for (int i = 0; i < PMEM_SIZE; i++) pmem[i] = 0;
-    // 测试指令，包括ebreak
-    pmem[0] = 0x00000013; // NOP (addi x0, x0, 0)
-    pmem[1] = 0x00100093; // addi x1, x0, 1
-    pmem[2] = 0x00200113; // addi x2, x0, 2
-    pmem[3] = 0x00100073; // EBREAK
+
+    // 如果未提供.bin文件, 则加载默认测试指令
+    if (!bin_file || strlen(bin_file) == 0) {
+        printf("No .bin file provided, loading default test instructions.\n");
+        pmem[0] = 0x00000013; // NOP (addi x0, x0, 0)
+        pmem[1] = 0x00100093; // addi x1, x0, 1
+        pmem[2] = 0x00200113; // addi x2, x0, 2
+        pmem[3] = 0x00100073; // EBREAK
+        return;
+    }
+
+    // 打开 .bin 文件
+    FILE* fp = fopen(bin_file , "rb");
+    if (!fp) {
+        printf("Error: Cannot open .bin file %s\n", bin_file);
+        fclose(fp);
+        exit(1);
+    }
+
+    // 读取文件内容到 pmem
+    fseek(fp, 0, SEEK_END);
+    size_t size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    // 确保文件大小是 4 的倍数 （指令按字对齐）
+    if (size % 4 != 0) {
+        printf("Error: .bin file size (%zu bytes) is not a multiple of 4\n", size);
+        fclose(fp);
+        exit(1);
+    }
+
+    size_t inst_cnt = size / 4;
+    if (inst_cnt > PMEM_SIZE) {
+        printf("Error: .bin file too large (%zu instructions), exceeds PMEM_SIZE (%u)\n", inst_cnt, PMEM_SIZE);
+        fclose(fp);
+        exit(1);
+    }
+
+    size_t read_cnt = fread(pmem, 4, inst_cnt, fp);
+    if (read_cnt != inst_cnt) {
+        printf("Error: Failed to read .bin file, expected %zu instructions, read %zu\n", inst_cnt, read_cnt);
+        fclose(fp);
+        exit(1);
+    }
+
+    printf("Loaded %zu instructions from %s to pmem\n", inst_cnt, bin_file);
+    fclose(fp);
 }
 
 VerilatedContext* contextp = NULL;
 VerilatedVcdC* tfp = NULL;
 Vysyx_25040105_soc_top* top;
 
-void sim_init() {
+void sim_init(const char* bin_file) {
     contextp = new VerilatedContext;
     contextp->traceEverOn(true);
     
@@ -48,7 +91,7 @@ void sim_init() {
     top->trace(tfp, 99);
     tfp->open("waveform.vcd");
     
-    pmem_init();
+    pmem_init(bin_file); // 初始化内存，加载指令
 }
 
 void sim_step() {
@@ -74,7 +117,14 @@ static void reset(int n) {
 }
 
 int main(int argc, char** argv) {
-    sim_init();
+    // 调试输出参数
+    for (int i = 0; i < argc; i++) {
+        printf("argv[%d]: %s\n", i, argv[i]);
+    }
+    const char* bin_file = NULL;
+    if (argc > 1) bin_file = argv[1];
+
+    sim_init(bin_file);
     contextp->commandArgs(argc, argv);
 
     reset(5);
