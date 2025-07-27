@@ -73,7 +73,7 @@ void pmem_init(const char* bin_file) {
         exit(1);
     }
 
-    printf("Loaded %zu instructions from %s to pmem\n", inst_cnt, bin_file);
+    printf("Loaded %zu instructions from %s to physical memory\n", inst_cnt, bin_file);
     fclose(fp);
 }
 
@@ -133,6 +133,7 @@ int main(int argc, char** argv) {
         single_cycle(*top);
         top->inst = pmem_read(top->pc); // 下一条指令
         top->eval();
+        if (top->inst == 0x00000000) break; // NOP指令，退出循环
     }
 
     sim_exit();

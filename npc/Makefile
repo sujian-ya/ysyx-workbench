@@ -37,7 +37,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $^ \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) > /dev/null 2>&1
 
 all: default
 
@@ -60,13 +60,15 @@ $(BIN_SIM): $(VSRCS) $(CSRCS_SIM)
 		--trace \
 		--top-module $(TOPNAME) $^ \
 		$(addprefix -CFLAGS , $(CXXFLAGS) -I$(abspath ./vsrc)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN_SIM))
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN_SIM)) > /dev/null 2>&1
 	@$(MAKE) -j -C $(OBJ_DIR) -f V$(TOPNAME).mk
 	@mkdir -p $(BUILD_DIR)  # 确保build目录存在
 
 sim: $(BIN_SIM) $(BIN_FILES)
 	$(call git_commit, "sim RTL without NVBoard")
+	@echo "######## Simulation beginning ########"
 	@$(BIN_SIM)  $(BIN_FILES)
+	@echo "######## Simulation finished ########"
 
 wave: $(BIN_SIM)
 	@gtkwave waveform.vcd
