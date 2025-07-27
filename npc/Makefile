@@ -73,8 +73,9 @@ wave: $(BIN_SIM)
 ########
 
 clean:
+	@touch waveform.vcd
+	@mv waveform.vcd $(BUILD_DIR)/waveform.vcd
 	rm -rf $(BUILD_DIR)
-	rm -rf waveform.vcd
 	
 .PHONY: default all clean run sim run-sim wave
 
