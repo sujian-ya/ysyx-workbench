@@ -31,12 +31,13 @@ module ysyx_25040105_IDU (
     localparam FUNCT3_SLLI      = 3'b001;
     localparam FUNCT3_SRLI      = 3'b101;
 
-    // ALU操作定义
+    // ALU操作定义(与EXU中保持一致)
     localparam ALU_ADD          = 4'b0000;
     localparam ALU_SUB          = 4'b0001;
     localparam ALU_SLL          = 4'b0010;
     localparam ALU_SRL          = 4'b0011;
-    localparam ALU_AUIPC        = 4'b0100; // AUIPC指令的特殊处理
+    localparam ALU_AUIPC        = 4'b0100;
+    localparam ALU_LUI          = 4'b0101;
     //TODO: 添加更多ALU操作
 
     // 指令字段提取
@@ -143,6 +144,12 @@ module ysyx_25040105_IDU (
                 reg_wen_reg = 1'b1; // 写目的寄存器(存储PC+立即数)
                 alu_src_reg = 1'b1; // 使用立即数作为第二操作数
                 alu_op_reg = ALU_AUIPC; // AUIPC指令特殊处理
+            end
+
+            OPCODE_LUI: begin
+                reg_wen_reg = 1'b1; // 写目的寄存器(存储立即数)
+                alu_src_reg = 1'b1; // 使用立即数作为第二操作数
+                alu_op_reg = ALU_LUI; // LUI指令特殊处理
             end
 
             // TODO:

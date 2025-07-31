@@ -14,6 +14,7 @@ module ysyx_25040105_EXU(
     localparam ALU_SLL          = 4'b0010; // SLL
     localparam ALU_SRL          = 4'b0011; // SRL
     localparam ALU_AUIPC        = 4'b0100; // AUIPC指令的特殊处理
+    localparam ALU_LUI          = 4'b0101; // LUI指令的特殊处理
     //TODO: 添加更多ALU操作
 
     // 选择ALU的第二操作数
@@ -28,6 +29,7 @@ module ysyx_25040105_EXU(
             ALU_SLL: result_reg = rs1_data << alu_operand2[4:0]; // SLL
             ALU_SRL: result_reg = rs1_data >> alu_operand2[4:0]; // SRL
             ALU_AUIPC: result_reg = pc + alu_operand2; // AUIPC指令的特殊处理
+            ALU_LUI: result_reg = alu_operand2; // LUI指令的特殊处理
             // TODO: 添加更多ALU操作
             default: result_reg = 32'b0; // 默认值，避免综合警告
         endcase
