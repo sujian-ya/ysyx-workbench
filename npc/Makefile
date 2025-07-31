@@ -60,7 +60,8 @@ $(BIN_SIM): $(VSRCS) $(CSRCS_SIM)
 		--trace \
 		--top-module $(TOPNAME) $^ \
 		$(addprefix -CFLAGS , $(CXXFLAGS) -I$(abspath ./vsrc)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN_SIM)) > /dev/null 2>&1
+		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN_SIM)) 
+# 		> /dev/null 2>&1
 	@$(MAKE) -j -C $(OBJ_DIR) -f V$(TOPNAME).mk
 	@mkdir -p $(BUILD_DIR)  # 确保build目录存在
 

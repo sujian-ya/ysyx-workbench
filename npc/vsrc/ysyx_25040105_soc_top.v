@@ -33,6 +33,7 @@ ysyx_25040105_IDU ysyx_25040105_idu (
 // EXU
 wire [31:0] alu_result;
 ysyx_25040105_EXU ysyx_25040105_exu (
+    .pc         (pc),
     .rs1_data   (rs1_data) ,
     .rs2_data   (rs2_data) ,
     .imm        (imm),

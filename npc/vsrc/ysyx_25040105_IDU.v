@@ -36,6 +36,7 @@ module ysyx_25040105_IDU (
     localparam ALU_SUB          = 4'b0001;
     localparam ALU_SLL          = 4'b0010;
     localparam ALU_SRL          = 4'b0011;
+    localparam ALU_AUIPC        = 4'b0100; // AUIPC指令的特殊处理
     //TODO: 添加更多ALU操作
 
     // 指令字段提取
@@ -136,6 +137,12 @@ module ysyx_25040105_IDU (
                 reg_wen_reg = 1'b1; // 写目的寄存器(存储加载的数据)
                 alu_src_reg = 1'b1; // 使用立即数计算地址
                 alu_op_reg = ALU_ADD; // 地址计算(基地址+偏移量)
+            end
+
+            OPCODE_AUIPC: begin
+                reg_wen_reg = 1'b1; // 写目的寄存器(存储PC+立即数)
+                alu_src_reg = 1'b1; // 使用立即数作为第二操作数
+                alu_op_reg = ALU_AUIPC; // AUIPC指令特殊处理
             end
 
             // TODO:
