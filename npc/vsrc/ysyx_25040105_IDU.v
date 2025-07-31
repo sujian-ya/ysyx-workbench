@@ -6,7 +6,8 @@ module ysyx_25040105_IDU (
     output [31:0]   imm     ,   // 生成的立即数
     output          reg_wen ,   // 寄存器写使能信号
     output [3:0]    alu_op  ,   // ALU操作控制信号
-    output          alu_src     // ALU第二操作数来源选择(寄存器/立即数)
+    output          alu_src ,   // ALU第二操作数来源选择(寄存器/立即数)
+    output          jump_en     // 跳转使能信号
 );
 
     // 导入DPI-C函数
@@ -38,6 +39,7 @@ module ysyx_25040105_IDU (
     localparam ALU_SRL          = 4'b0011;
     localparam ALU_AUIPC        = 4'b0100;
     localparam ALU_LUI          = 4'b0101;
+    localparam ALU_JAL          = 4'b0110;
     //TODO: 添加更多ALU操作
 
     // 指令字段提取
@@ -96,6 +98,8 @@ module ysyx_25040105_IDU (
     reg [3:0] alu_op_reg;       // ALU操作码寄存器
     reg alu_src_reg;            // ALU源选择寄存器
     reg reg_wen_reg;            // 寄存器写使能寄存器
+    // 跳转使能信号和跳转地址初始化
+    assign jump_en = (opcode == OPCODE_JAL || opcode == OPCODE_JALR); 
 
     always @(*) begin
         // 默认值
@@ -131,6 +135,13 @@ module ysyx_25040105_IDU (
                     // TODO:
                     default: alu_op_reg = 4'hx;
                 endcase
+            end
+
+            // 跳转指令(如JAL)
+            OPCODE_JAL: begin
+                reg_wen_reg = 1'b1; // 写目的寄存器(存储返回地址)
+                alu_src_reg = 1'b1; // 使用立即数作为第二操作数处理PC偏移
+                alu_op_reg = ALU_JAL; // JAL指令的特殊处理
             end
 
             // 加载指令(如LW、LB等)

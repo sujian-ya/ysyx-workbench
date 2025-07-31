@@ -7,9 +7,13 @@ module ysyx_25040105_soc_top (
 );
 
 // IFU
+wire jump_en; // 跳转使能信号
+wire [31:0] jump_addr; // 跳转地址
 ysyx_25040105_IFU ysyx_25040105_ifu (
     .clk(clk),
     .rst(rst),
+    .jump_en(jump_en), // 跳转使能信号
+    .jump_addr(jump_addr), // 跳转地址
     .pc(pc)
 );
 
@@ -27,19 +31,21 @@ ysyx_25040105_IDU ysyx_25040105_idu (
     .imm        (imm),
     .reg_wen    (reg_wen),
     .alu_op     (alu_op),
-    .alu_src    (alu_src)
+    .alu_src    (alu_src),
+    .jump_en    (jump_en) // 跳转使能信号
 );
 
 // EXU
 wire [31:0] alu_result;
 ysyx_25040105_EXU ysyx_25040105_exu (
     .pc         (pc),
-    .rs1_data   (rs1_data) ,
-    .rs2_data   (rs2_data) ,
+    .rs1_data   (rs1_data),
+    .rs2_data   (rs2_data),
     .imm        (imm),
     .alu_op     (alu_op),
     .alu_src    (alu_src),
-    .alu_result (alu_result)
+    .alu_result (alu_result),
+    .jump_addr  (jump_addr) // 跳转地址
 );
 
 // Register File
