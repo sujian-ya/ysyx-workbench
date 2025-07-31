@@ -40,6 +40,7 @@ module ysyx_25040105_IDU (
     localparam ALU_AUIPC        = 4'b0100;
     localparam ALU_LUI          = 4'b0101;
     localparam ALU_JAL          = 4'b0110;
+    localparam ALU_JALR         = 4'b0111;
     //TODO: 添加更多ALU操作
 
     // 指令字段提取
@@ -135,6 +136,13 @@ module ysyx_25040105_IDU (
                     // TODO:
                     default: alu_op_reg = 4'hx;
                 endcase
+            end
+
+            // 跳转指令(如JALR)
+            OPCODE_JALR: begin
+                reg_wen_reg = 1'b1; // 写目的寄存器(存储返回地址)
+                alu_src_reg = 1'b1; // 使用立即数作为第二操作数处理PC偏移
+                alu_op_reg = ALU_JALR; // JALR指令的特殊处理
             end
 
             // 跳转指令(如JAL)

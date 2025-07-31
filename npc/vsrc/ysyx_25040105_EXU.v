@@ -27,7 +27,7 @@ module ysyx_25040105_EXU(
     reg [31:0] result_reg; // 用于暂存运算结果的寄存器
     reg [31:0] jump_addr_reg;
     always @(*) begin
-        // 默认初始值
+        // 默认初始值，避免综合警告
         result_reg = 32'h0;
         jump_addr_reg = 32'h8000_0000;
         case (alu_op)
@@ -41,8 +41,12 @@ module ysyx_25040105_EXU(
                 result_reg = pc + 4;
                 jump_addr_reg  = pc + alu_operand2; // JAL指令的跳转地址
             end
+            ALU_JALR: begin
+                result_reg = pc + 4; // JALR指令的返回地址
+                jump_addr_reg = (rs1_data + alu_operand2) & ~32'h1; // JALR跳转地址，结果强制对齐到偶数地址
+            end
             // TODO: 添加更多ALU操作
-            default: result_reg = 32'b0; // 默认值，避免综合警告
+            default: result_reg = 32'h0; // 默认值，避免综合警告
         endcase
     end
 
