@@ -89,7 +89,7 @@ void sim_init(const char* bin_file) {
     
     tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
-    tfp->open("waveform.vcd");
+    tfp->open("./build/waveform.vcd");
     
     pmem_init(bin_file); // 初始化内存，加载指令
 }

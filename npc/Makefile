@@ -72,12 +72,10 @@ sim: $(BIN_SIM) $(BIN_FILES)
 	@echo "######## Simulation finished ########"
 
 wave: $(BIN_SIM)
-	@gtkwave waveform.vcd
+	@gtkwave $(BUILD_DIR)/waveform.vcd
 ########
 
 clean:
-	@touch waveform.vcd
-	@mv waveform.vcd $(BUILD_DIR)/waveform.vcd
 	rm -rf $(BUILD_DIR)
 	
 .PHONY: default all clean run sim run-sim wave

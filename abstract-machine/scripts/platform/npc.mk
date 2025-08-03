@@ -17,8 +17,9 @@ MAINARGS_MAX_LEN = 64
 MAINARGS_PLACEHOLDER = The insert-arg rule in Makefile will insert mainargs here.
 CFLAGS += -DMAINARGS_MAX_LEN=$(MAINARGS_MAX_LEN) -DMAINARGS_PLACEHOLDER=\""$(MAINARGS_PLACEHOLDER)"\"
 
-TOPNAME = ysyx_25040105_soc_top
-NPC_SIM = $(NPC_HOME)/build/$(TOPNAME)_sim
+# 添加npc的路径，增加可移植性
+NPC_HOME ?= $(abspath $(dir $(AM_HOME))/npc)
+NPC_SIM = $(NPC_HOME)
 
 insert-arg: image
 	@python $(AM_HOME)/tools/insert-arg.py $(IMAGE).bin $(MAINARGS_MAX_LEN) "$(MAINARGS_PLACEHOLDER)" "$(mainargs)"
@@ -29,6 +30,6 @@ image: image-dep
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: insert-arg $(NPC_SIM)
-	@$(MAKE) -C $(NPC_HOME) sim
+	@$(MAKE) -C $(NPC_SIM) sim
 
 .PHONY: insert-arg run
