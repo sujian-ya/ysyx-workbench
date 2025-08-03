@@ -6,6 +6,10 @@ module ysyx_25040105_soc_top (
     output reg [31:0] rf [31:0] // 便于查看寄存器波形
 );
 
+// 导入DPI-C函数
+import "DPI-C" function void ebreak_handler();
+import "DPI-C" function void sys_exit(int a0_state);
+
 // IFU
 wire jump_en; // 跳转使能信号
 wire [31:0] jump_addr; // 跳转地址
@@ -61,5 +65,14 @@ ysyx_25040105_RegisterFile ysyx_25040105_rf (
     .wen        (reg_wen),
     .rf         (rf)
 );
+
+// 检测ebreak指令
+wire is_ebreak = (inst == 32'h00100073);
+always @(*) begin
+    if (is_ebreak) begin
+        ebreak_handler(); // 调用DPI-C函数处理ebreak
+        sys_exit(rf[10]);  // 判断a0寄存器是否为0（0表示正常退出）
+    end
+end
 
 endmodule

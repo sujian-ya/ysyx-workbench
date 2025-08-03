@@ -10,9 +10,6 @@ module ysyx_25040105_IDU (
     output          jump_en     // 跳转使能信号
 );
 
-    // 导入DPI-C函数
-    import "DPI-C" function void ebreak_handler();
-
     // 指令 opcode 定义
     localparam OPCODE_LOAD      = 7'b0000011;
     localparam OPCODE_OP_IMM    = 7'b0010011;
@@ -53,14 +50,6 @@ module ysyx_25040105_IDU (
     assign rs1 = inst[19:15];           // 源寄存器1地址(5位)
     assign rs2 = inst[24:20];           // 源寄存器2地址(5位)
     assign rd = inst[11:7];            // 目的寄存器地址(5位)
-
-    // 检测ebreak指令
-    wire is_ebreak = (inst == 32'h00100073); 
-    always @(*) begin
-        if (is_ebreak) begin
-            ebreak_handler(); // 调用DPI-C函数处理ebreak
-        end
-    end
 
     // 立即数生成逻辑
     reg [31:0] imm_reg;

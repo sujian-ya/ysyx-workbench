@@ -6,6 +6,13 @@
 #include "verilated_vcd_c.h"
 #include "Vysyx_25040105_soc_top.h"
 
+#define ANSI_FG_GREEN   "\33[1;32m"
+#define ANSI_FG_RED     "\33[1;31m"
+#define ANSI_FG_BLUE    "\33[1;34m"
+#define ANSI_FG_YELLOW  "\33[1;33m"
+#define ANSI_NONE       "\33[0m"
+#define ANSI_FMT(str, fmt) fmt str ANSI_NONE
+
 #define PMEM_SIZE (128 * 1024 * 1024) // 内存地址：0x80000000 -- > 0x87ffffff
 uint32_t pmem[PMEM_SIZE];
 
@@ -14,8 +21,22 @@ static int sim_done = 0;
 
 // DPI-C导出的函数，供Verilog调用
 extern "C" void ebreak_handler() {
-    printf("EBREAK detected, stopping simulation\n");
+    // printf("EBREAK detected, stopping simulation\n");
+    printf(ANSI_FMT("EBREAK detected, stopping simulation\n", ANSI_FG_YELLOW));
     sim_done = 1; // 设置退出标志
+}
+
+extern "C" void sys_exit(int a0_state) {
+    if (a0_state == 0)
+    {
+        // "npc: " 使用蓝色，"HIT GOOD TRAP" 使用绿色
+        printf(ANSI_FMT("npc: ", ANSI_FG_BLUE) ANSI_FMT("HIT GOOD TRAP\n", ANSI_FG_GREEN));
+    }
+    else
+    {
+        // "npc: " 使用蓝色，"BAD TRAP" 使用红色
+        printf(ANSI_FMT("npc: ", ANSI_FG_BLUE) ANSI_FMT("BAD TRAP\n", ANSI_FG_RED));
+    }
 }
 
 uint32_t pmem_read(uint32_t addr) {
@@ -131,10 +152,14 @@ int main(int argc, char** argv) {
     reset(5);
     top->inst = pmem_read(0x80000000); // 初始指令
     while (!sim_done && !Verilated::gotFinish()) {
+        // 未定义指令
+        if(top->inst == 0x00000000) {
+            printf(ANSI_FMT("npc: ", ANSI_FG_BLUE) ANSI_FMT("BAD TRAP ", ANSI_FG_RED) ANSI_FMT("at pc = 0x%08x\n", ANSI_NONE), top->pc);
+            break;
+        }
         single_cycle(*top);
         top->inst = pmem_read(top->pc); // 下一条指令
         top->eval();
-        if (top->inst == 0x00000000) break; // NOP指令，退出循环
     }
 
     sim_exit();
