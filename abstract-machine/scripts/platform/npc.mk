@@ -20,9 +20,6 @@ CFLAGS += -DMAINARGS_MAX_LEN=$(MAINARGS_MAX_LEN) -DMAINARGS_PLACEHOLDER=\""$(MAI
 TOPNAME = ysyx_25040105_soc_top
 NPC_SIM = $(NPC_HOME)/build/$(TOPNAME)_sim
 
-$(NPC_SIM):
-	@make -C $(NPC_HOME) sim
-
 insert-arg: image
 	@python $(AM_HOME)/tools/insert-arg.py $(IMAGE).bin $(MAINARGS_MAX_LEN) "$(MAINARGS_PLACEHOLDER)" "$(mainargs)"
 
@@ -32,6 +29,6 @@ image: image-dep
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: insert-arg $(NPC_SIM)
-	@$(NPC_SIM)
+	@$(MAKE) -C $(NPC_HOME) sim
 
 .PHONY: insert-arg run
