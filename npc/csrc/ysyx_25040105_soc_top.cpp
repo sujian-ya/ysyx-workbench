@@ -89,6 +89,7 @@ void sim_init(const char* bin_file) {
     
     tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
+    // 定义波形文件的输出路径
     tfp->open("./build/waveform.vcd");
     
     pmem_init(bin_file); // 初始化内存，加载指令
