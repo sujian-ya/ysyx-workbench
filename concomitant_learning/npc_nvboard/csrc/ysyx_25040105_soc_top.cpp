@@ -2,10 +2,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <utils.h>
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include "Vysyx_25040105_soc_top.h"
+
+#define ANSI_FG_GREEN   "\33[1;32m"
+#define ANSI_FG_RED     "\33[1;31m"
+#define ANSI_FG_BLUE    "\33[1;34m"
+#define ANSI_FG_YELLOW  "\33[1;33m"
+#define ANSI_NONE       "\33[0m"
+#define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 
 #define PMEM_SIZE (128 * 1024 * 1024) // 内存地址：0x80000000 -- > 0x87ffffff
 uint32_t pmem[PMEM_SIZE];
