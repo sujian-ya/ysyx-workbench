@@ -23,6 +23,10 @@ BIN_FILES_PATH ?= /home/sheep/ysyx-workbench/am-kernels/tests/cpu-tests/build
 # 获取该路径下所有.bin文件
 BIN_FILES = $(wildcard $(BIN_FILES_PATH)/*.bin)
 
+# rules for verilator
+INCFLAGS = $(addprefix -I, $(INC_PATH))
+CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
+
 $(BIN): $(VSRCS) $(CSRCS)
 	@rm -rf $(OBJ_DIR)
 	@$(VERILATOR) $(VERILATOR_CFLAGS) \
