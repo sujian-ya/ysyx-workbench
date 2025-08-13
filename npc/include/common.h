@@ -21,6 +21,7 @@ typedef MUXDEF(PMEM64, uint64_t, uint32_t) paddr_t;
 typedef uint16_t ioaddr_t;
 
 #include <debug.h>
+#include <config.h>
 
 #endif
 
