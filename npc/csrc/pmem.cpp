@@ -21,7 +21,7 @@ void pmem_init(const char* bin_file) {
         fp = fopen(bin_file, "rb");
         Assert(fp, "Can not open '%s'", bin_file);
         
-        Log("Image is given. Use the specified image.");
+        Log("Image is given. Use the specified image: %s", bin_file);
         fseek(fp, 0, SEEK_END);
         size_t file_size = ftell(fp);
         fseek(fp, 0, SEEK_SET);

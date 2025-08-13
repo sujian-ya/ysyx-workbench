@@ -29,7 +29,6 @@ BIN_FILES = $(wildcard $(BIN_FILES_PATH)/*.bin)
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 LDFLAGS += -lreadline -ltermcap # 链接器选项，包括 readline 和 termcap
-# 		$(addprefix -CFLAGS , $(CXXFLAGS) -I$(abspath ./vsrc)) \
 
 $(BIN): $(VSRCS) $(CSRCS)
 	@rm -rf $(OBJ_DIR)

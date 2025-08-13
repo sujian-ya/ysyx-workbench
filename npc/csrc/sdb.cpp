@@ -1,16 +1,7 @@
-// #include <cpu/decode.h>
-// #include <isa.h>
-// #include <cpu/cpu.h>
-// #include <readline/readline.h>
-// #include <readline/history.h>
-// #include "sdb.h"
-// #include <memory/paddr.h> /*include paddr_read function*/
 #include <sdb.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <cpu.h>
 #include <utils.h>
+#include <common.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -30,7 +21,7 @@ static char* rl_gets() {
     line_read = NULL;
   }
 
-  line_read = readline("(nemu) ");
+  line_read = readline("(npc) ");
 
   if (line_read && *line_read) {
     add_history(line_read);

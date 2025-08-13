@@ -1,7 +1,4 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <common.h>
 #include <utils.h>
 #include <pmem.h>
 #include <sdb.h>
@@ -23,6 +20,7 @@ void reset (int n);
 extern "C" void sys_exit(int exit_state) {
     npc_state.state = exit_state ? NPC_END : NPC_ABORT;
     npc_state.halt_ret = exit_state ? 0 : 1; // 设置返回值 
+    npc_state.halt_pc = top->pc; // 设置当前PC
 }
 
 void sim_init(const char* bin_file) {
