@@ -1,6 +1,7 @@
 # ps2_keyboard shift_seg.v shift_seg ALU prior_encoder selector waterfall_light switch
 TOPNAME = ysyx_25040105_soc_top
-INC_PATH ?=
+# INC_PATH ?= $(abspath ./include)
+INC_PATH := $(shell find $(abspath ./include) -type d)
 
 VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -cc  \
@@ -16,7 +17,8 @@ $(shell mkdir -p $(BUILD_DIR))
 
 # project source
 VSRCS = $(shell find $(abspath ./vsrc) -name "*.v")
-CSRCS = $(shell find $(abspath ./csrc) -name "$(TOPNAME).c" -or -name "$(TOPNAME).cc" -or -name "$(TOPNAME).cpp")
+CSRCS = $(shell find $(abspath ./csrc) -type f \( -name "*.c" -o -name "*.cc" -o -name "*.cpp" \))
+# CSRCS = $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 
 # 定义cpu_tests的路径
 BIN_FILES_PATH ?= /home/sheep/ysyx-workbench/am-kernels/tests/cpu-tests/build
@@ -26,13 +28,15 @@ BIN_FILES = $(wildcard $(BIN_FILES_PATH)/*.bin)
 # rules for verilator
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
+LDFLAGS += -lreadline -ltermcap # 链接器选项，包括 readline 和 termcap
+# 		$(addprefix -CFLAGS , $(CXXFLAGS) -I$(abspath ./vsrc)) \
 
 $(BIN): $(VSRCS) $(CSRCS)
 	@rm -rf $(OBJ_DIR)
 	@$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--trace \
 		--top-module $(TOPNAME) $^ \
-		$(addprefix -CFLAGS , $(CXXFLAGS) -I$(abspath ./vsrc)) \
+		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) 
 # 		> /dev/null 2>&1
 	@$(MAKE) -j -C $(OBJ_DIR) -f V$(TOPNAME).mk
