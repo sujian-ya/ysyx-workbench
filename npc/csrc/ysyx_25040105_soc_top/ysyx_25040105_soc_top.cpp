@@ -16,6 +16,7 @@ void sim_init(const char* bin_file);
 void sim_exit();
 void single_cycle(Vysyx_25040105_soc_top &dut);
 void reset (int n);
+uint32_t sim_get_pc();
 
 extern "C" void sys_exit(int exit_state) {
     npc_state.state = exit_state ? NPC_END : NPC_ABORT;
@@ -52,4 +53,8 @@ void reset(int n) {
     top->rst = 1;
     while (n-- > 0) single_cycle(*top);
     top->rst = 0;
+}
+
+uint32_t sim_get_pc() {
+    return (uint32_t)top->pc;
 }

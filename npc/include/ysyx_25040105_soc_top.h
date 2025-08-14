@@ -13,5 +13,6 @@ void sim_init(const char* bin_file);
 void sim_exit();
 void reset(int n);
 void single_cycle(Vysyx_25040105_soc_top &dut);
+uint32_t sim_get_pc();
 
 #endif

@@ -13,6 +13,7 @@ NPCState npc_state = { .state = NPC_STOP };
 extern Vysyx_25040105_soc_top* top;
 extern void single_cycle(Vysyx_25040105_soc_top &dut);
 extern uint32_t pmem_read(uint32_t addr);
+extern void sim_exit();
 
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
@@ -69,6 +70,8 @@ void cpu_exec(uint64_t n) {
             ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED))),
           npc_state.halt_pc);
       // fall through
-    case NPC_QUIT: statistic();
+    case NPC_QUIT: 
+      sim_exit();
+      statistic();
   }
 }
