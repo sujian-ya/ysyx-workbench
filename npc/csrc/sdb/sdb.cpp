@@ -1,6 +1,7 @@
 #include <sdb.h>
 #include <cpu.h>
 #include <utils.h>
+#include <pmem.h>
 #include <common.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -8,9 +9,7 @@
 
 static int is_batch_mode = false;
 
-// 声明执行函数
 extern void cpu_exec(uint64_t n);
-// 声明退出函数
 extern void sim_exit();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
@@ -22,7 +21,8 @@ static char* rl_gets() {
     line_read = NULL;
   }
 
-  line_read = readline("(npc) ");
+  // 为提示符 (npc) 添加颜色方便操作
+  line_read = readline("(\33[1;34mnpc\33[0m) ");
 
   if (line_read && *line_read) {
     add_history(line_read);
@@ -49,8 +49,15 @@ static int cmd_si(char* args) {
 	else sscanf(args, "%d", &N);
 	cpu_exec(N);
   if (npc_state.state == NPC_STOP) {
-    printf("PC = %08x\n", pc);
+    printf("pc = %s%08x%s\n", ANSI_FG_BLACK, pc, ANSI_NONE);
   }
+	return 0;
+}
+
+static int cmd_info(char* args) {
+	if (args == NULL) printf("No args.\n");
+	if (strcmp(args, "r") == 0) npc_reg_display();
+	// if (strcmp(args, "w") == 0) sdb_watchpoint_display();
 	return 0;
 }
 
@@ -60,12 +67,12 @@ static struct {
   int (*handler) (char *);
 } cmd_table [] = {
   { "help", "Display information about all supported commands", cmd_help },
-  { "c", "Continue the execution of the program", cmd_c },
-  { "q", "Exit NEMU", cmd_q },
-  { "si", "Let the program pause execution after running N instructions step by step. When N is not given, it defaults to 1", cmd_si },
+  { "c"   , "Continue the execution of the program", cmd_c },
+  { "q"   , "Exit NEMU", cmd_q },
+  { "si"  , "Let the program pause execution after running N instructions step by step. When N is not given, it defaults to 1", cmd_si },
+	{ "info", "Print register status - r, print watchpoint information - w", cmd_info },
 
   /* TODO: Add more commands */
-
 };
 
 #define NR_CMD ARRLEN(cmd_table)
@@ -75,16 +82,18 @@ static int cmd_help(char *args) {
   char *arg = strtok(NULL, " ");
   int i;
 
+  printf("pc = %s%08x%s\n", ANSI_FG_BLACK, pc, ANSI_NONE);
+
   if (arg == NULL) {
     /* no argument given */
     for (i = 0; i < NR_CMD; i ++) {
-      printf("%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+      printf("%s%s%s - %s\n", ANSI_FG_BLACK, cmd_table[i].name, ANSI_NONE, cmd_table[i].description);
     }
   }
   else {
     for (i = 0; i < NR_CMD; i ++) {
       if (strcmp(arg, cmd_table[i].name) == 0) {
-        printf("%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+        printf("%s%s%s - %s\n", ANSI_FG_BLACK, cmd_table[i].name, ANSI_NONE, cmd_table[i].description);
         return 0;
       }
     }

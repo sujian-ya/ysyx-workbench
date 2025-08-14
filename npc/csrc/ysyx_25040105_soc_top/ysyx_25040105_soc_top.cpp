@@ -17,8 +17,9 @@ void sim_exit();
 void single_cycle(Vysyx_25040105_soc_top &dut);
 void reset (int n);
 
-// 定义PC
+// 定义PC和寄存器
 uint32_t pc = 0x0;
+uint32_t reg[32] = {0};
 
 extern "C" void sys_exit(int exit_state) {
     npc_state.state = exit_state ? NPC_END : NPC_ABORT;
@@ -49,6 +50,7 @@ void single_cycle(Vysyx_25040105_soc_top &dut) {
     dut.clk = 1; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
     // 更新全局pc变量的值为当前top的pc
     pc = (uint32_t)top->pc;
+    memcpy(reg, top->rf, 32 * sizeof(uint32_t));
 }
 
 void reset(int n) {

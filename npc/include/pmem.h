@@ -13,4 +13,7 @@ void pmem_init(const char* bin_file);
 // 内存读函数
 uint32_t pmem_read(uint32_t addr);
 
+// 打印寄存器
+extern void npc_reg_display();
+
 #endif
