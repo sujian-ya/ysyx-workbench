@@ -12,7 +12,6 @@ static int is_batch_mode = false;
 extern void cpu_exec(uint64_t n);
 // 声明退出函数
 extern void sim_exit();
-extern uint32_t sim_get_pc();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
@@ -49,7 +48,6 @@ static int cmd_si(char* args) {
 	if (args == NULL) N = 1;
 	else sscanf(args, "%d", &N);
 	cpu_exec(N);
-  uint32_t pc = sim_get_pc();
   if (npc_state.state == NPC_STOP) {
     printf("PC = %08x\n", pc);
   }

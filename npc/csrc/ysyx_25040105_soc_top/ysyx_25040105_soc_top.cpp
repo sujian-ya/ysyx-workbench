@@ -16,7 +16,9 @@ void sim_init(const char* bin_file);
 void sim_exit();
 void single_cycle(Vysyx_25040105_soc_top &dut);
 void reset (int n);
-uint32_t sim_get_pc();
+
+// 定义PC
+uint32_t pc = 0x0;
 
 extern "C" void sys_exit(int exit_state) {
     npc_state.state = exit_state ? NPC_END : NPC_ABORT;
@@ -27,9 +29,7 @@ extern "C" void sys_exit(int exit_state) {
 void sim_init(const char* bin_file) {
     contextp = new VerilatedContext;
     contextp->traceEverOn(true);
-    
     top = new Vysyx_25040105_soc_top(contextp);
-    
     tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
     // 定义波形文件的输出路径
@@ -47,14 +47,12 @@ void sim_exit() {
 void single_cycle(Vysyx_25040105_soc_top &dut) {
     dut.clk = 0; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
     dut.clk = 1; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
+    // 更新全局pc变量的值为当前top的pc
+    pc = (uint32_t)top->pc;
 }
 
 void reset(int n) {
     top->rst = 1;
     while (n-- > 0) single_cycle(*top);
     top->rst = 0;
-}
-
-uint32_t sim_get_pc() {
-    return (uint32_t)top->pc;
 }
