@@ -2,6 +2,7 @@
 #include <utils.h>
 #include <pmem.h>
 #include <sdb.h>
+#include "svdpi.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include "Vysyx_25040105_soc_top.h"
@@ -18,7 +19,7 @@ void single_cycle(Vysyx_25040105_soc_top &dut);
 void reset (int n);
 
 // 定义PC和寄存器
-uint32_t pc = 0x0;
+uint32_t pc = 0x80000000;
 uint32_t reg[32] = {0};
 
 extern "C" void sys_exit(int exit_state) {
@@ -27,8 +28,12 @@ extern "C" void sys_exit(int exit_state) {
     npc_state.halt_pc = top->pc; // 设置当前PC
 }
 
-extern "C" void get_regs(uint32_t rf[32]) {
+extern "C" void sim_get_regs(uint32_t rf[32]) {
     memcpy(reg, rf, 32 * sizeof(uint32_t));
+}
+
+extern "C" void sim_get_pc(uint32_t* rtl_pc) {
+    pc = rtl_pc[0];
 }
 
 void sim_init(const char* bin_file) {
@@ -52,8 +57,8 @@ void sim_exit() {
 void single_cycle(Vysyx_25040105_soc_top &dut) {
     dut.clk = 0; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
     dut.clk = 1; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
-    // 更新全局pc变量的值为当前top的pc
-    pc = (uint32_t)top->pc;
+    // 更新全局pc变量的值为当前top的pc(第二种获取pc方法)
+    // pc = (uint32_t)top->pc;
 }
 
 void reset(int n) {
