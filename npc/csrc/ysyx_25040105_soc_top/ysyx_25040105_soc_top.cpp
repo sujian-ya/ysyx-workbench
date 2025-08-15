@@ -27,6 +27,10 @@ extern "C" void sys_exit(int exit_state) {
     npc_state.halt_pc = top->pc; // 设置当前PC
 }
 
+extern "C" void get_regs(uint32_t rf[32]) {
+    memcpy(reg, rf, 32 * sizeof(uint32_t));
+}
+
 void sim_init(const char* bin_file) {
     contextp = new VerilatedContext;
     contextp->traceEverOn(true);
@@ -50,7 +54,6 @@ void single_cycle(Vysyx_25040105_soc_top &dut) {
     dut.clk = 1; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
     // 更新全局pc变量的值为当前top的pc
     pc = (uint32_t)top->pc;
-    memcpy(reg, top->rf, 32 * sizeof(uint32_t));
 }
 
 void reset(int n) {
