@@ -12,5 +12,7 @@
 // reg.cpp
 #define REG_NUM 32
 
+// watchpoint.cpp
+#define CONFIG_WATCHPOINT 1
 
 #endif

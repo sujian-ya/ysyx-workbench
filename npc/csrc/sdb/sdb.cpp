@@ -52,7 +52,9 @@ static int cmd_si(char* args) {
 	else sscanf(args, "%d", &N);
 	cpu_exec(N);
   if (npc_state.state == NPC_STOP) {
-    printf("pc = %s%08x%s\n", ANSI_FG_BLACK, pc, ANSI_NONE);
+    #ifndef CONFIG_WATCHPOINT
+        printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
+    #endif
   }
 	return 0;
 }
@@ -60,7 +62,30 @@ static int cmd_si(char* args) {
 static int cmd_info(char* args) {
 	if (args == NULL) printf("No args.\n");
 	if (strcmp(args, "r") == 0) npc_reg_display();
-	// if (strcmp(args, "w") == 0) sdb_watchpoint_display();
+	if (strcmp(args, "w") == 0) sdb_watchpoint_display();
+	return 0;
+}
+
+static int cmd_d (char* args) {
+	if (args == NULL) {
+		printf("No args\n");
+		return 0;
+	}
+	char *num_str = strtok(args, " ");
+	// printf("Deleting watchpoint:\n");
+	// printf("%-12s %-12s %-12s %-12s %-12s\n","PC","Watchpoint","int32_t","uint32_t","expression");
+	while (num_str != NULL) {
+		int num = atoi(num_str);
+		delete_watchpoint(num);
+		num_str = strtok(NULL, " ");
+	}
+	//else delete_watchpoint(atoi(args));
+	return 0;
+}
+
+static int cmd_w(char* args) {
+	if (args == NULL) printf("No args.\n");
+	create_watchpoint(args);
 	return 0;
 }
 
@@ -78,7 +103,7 @@ static int cmd_p(char* args) {
 	}
 
 	printf("%s\n", ANSI_FMT("Calculating expression:", ANSI_FG_GREEN));
-  printf("pc = %s%08x%s\n", ANSI_FG_BLACK, pc, ANSI_NONE);
+  printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
 	printf("%s%-14s %-14s %-14s%s\n", ANSI_FG_BLACK, "uint32_t", "int32_t", "expression", ANSI_NONE);
 	printf("| %s0x%-10x | %-12d | %s%s\n", ANSI_FG_BLACK, (uint32_t)val, (int32_t)val, args, ANSI_NONE);
 	return 0;
@@ -95,7 +120,8 @@ static struct {
   { "si"  , "Let the program pause execution after running N instructions step by step. When N is not given, it defaults to 1", cmd_si },
 	{ "info", "Print register status - r, print watchpoint information - w", cmd_info },
   { "p"   , "Evaluate the expression EXPR.", cmd_p },
-
+	{ "w"   , "Set watchpoints.When the value of the expression EXPR changes, pause the program execution", cmd_w},
+	{ "d"   , "Delete the watchpoint with serial number N", cmd_d},
   /* TODO: Add more commands */
 };
 
@@ -172,5 +198,5 @@ void init_sdb() {
   init_regex();
 
 //   /* Initialize the watchpoint pool. */
-//   init_wp_pool();
+  init_wp_pool();
 }

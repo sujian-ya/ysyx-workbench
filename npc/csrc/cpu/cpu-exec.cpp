@@ -25,6 +25,9 @@ static void execute(uint64_t n) {
     top->inst = pmem_read(top->pc);
     top->eval();
     g_nr_guest_inst ++;
+#ifdef CONFIG_WATCHPOINT
+check_watchpoint();
+#endif
     if(npc_state.state != NPC_RUNNING) break;
   }
 }
