@@ -23,5 +23,7 @@ typedef uint16_t ioaddr_t;
 #include <debug.h>
 #include <config.h>
 
+#include <ysyx_25040105_soc_top.h>
+
 #endif
 

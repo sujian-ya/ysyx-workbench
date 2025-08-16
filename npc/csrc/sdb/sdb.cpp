@@ -9,6 +9,9 @@
 
 static int is_batch_mode = false;
 
+void init_regex();
+// void init_wp_pool();
+
 extern void cpu_exec(uint64_t n);
 extern void sim_exit();
 
@@ -61,6 +64,26 @@ static int cmd_info(char* args) {
 	return 0;
 }
 
+static int cmd_p(char* args) {
+	if (args == NULL) {
+		printf("No expression provided.\n");
+		return 0;
+	}
+	bool success = true;
+	//word_t result = expr(args, &success);
+	int32_t val = (int32_t)expr(args, &success);
+	if (!success) {
+		// printf("Error evaluating expression.\n");
+    return 0;
+	}
+
+	printf("%s\n", ANSI_FMT("Calculating expression:", ANSI_FG_GREEN));
+  printf("pc = %s%08x%s\n", ANSI_FG_BLACK, pc, ANSI_NONE);
+	printf("%s%-14s %-14s %-14s%s\n", ANSI_FG_BLACK, "uint32_t", "int32_t", "expression", ANSI_NONE);
+	printf("| %s0x%-10x | %-12d | %s%s\n", ANSI_FG_BLACK, (uint32_t)val, (int32_t)val, args, ANSI_NONE);
+	return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -71,6 +94,7 @@ static struct {
   { "q"   , "Exit NEMU", cmd_q },
   { "si"  , "Let the program pause execution after running N instructions step by step. When N is not given, it defaults to 1", cmd_si },
 	{ "info", "Print register status - r, print watchpoint information - w", cmd_info },
+  { "p"   , "Evaluate the expression EXPR.", cmd_p },
 
   /* TODO: Add more commands */
 };
@@ -143,10 +167,10 @@ void sdb_mainloop() {
   }
 }
 
-// void init_sdb() {
-//   /* Compile the regular expressions. */
-//   init_regex();
+void init_sdb() {
+  /* Compile the regular expressions. */
+  init_regex();
 
 //   /* Initialize the watchpoint pool. */
 //   init_wp_pool();
-// }
+}

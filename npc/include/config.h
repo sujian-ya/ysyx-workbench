@@ -9,4 +9,8 @@
 // 客服端isa选择
 #define __GUEST_ISA__ riscv32e
 
+// reg.cpp
+#define REG_NUM 32
+
+
 #endif
