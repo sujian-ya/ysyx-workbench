@@ -32,8 +32,12 @@ extern "C" void sim_get_regs(uint32_t rf[32]) {
     memcpy(reg, rf, 32 * sizeof(uint32_t));
 }
 
-extern "C" void sim_get_pc(uint32_t* rtl_pc) {
-    pc = rtl_pc[0];
+// extern "C" void sim_get_pc(uint32_t* rtl_pc) {
+//     pc = rtl_pc[0];
+// }
+
+static void sim_get_pc() {
+    pc = top->pc;
 }
 
 void sim_init(const char* bin_file) {
@@ -58,7 +62,7 @@ void single_cycle(Vysyx_25040105_soc_top &dut) {
     dut.clk = 0; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
     dut.clk = 1; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
     // 更新全局pc变量的值为当前top的pc(第二种获取pc方法)
-    // pc = (uint32_t)top->pc;
+    sim_get_pc();
 }
 
 void reset(int n) {
