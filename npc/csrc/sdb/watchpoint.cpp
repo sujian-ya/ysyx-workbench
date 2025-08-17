@@ -32,7 +32,7 @@ void init_wp_pool() {
 
 WP* new_wp() {
 	if (free_ == NULL) {
-		printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
+		printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
 		printf("No free watchpoints available.\n");
 		assert(0); // No available idle monitoring points.
 		return NULL;
@@ -86,14 +86,14 @@ void create_watchpoint(char* args) {
 	bool watchpoint_success = true;
 	new_node->value = expr(new_node->expr, &watchpoint_success);
 	if (!watchpoint_success) {
-		printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
+		printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
 		printf("Invalid expression '%s'.\n", args);
 		free_wp(new_node);
 		return;
 	}
 
-	printf("%s\n", ANSI_FMT("Creating watchpoint:", ANSI_FG_GREEN));
-	printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
+	printf("%s\n", ANSI_FMT("Creating watchpoint:", ANSI_FG_LIGHTPINK));
+	printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
 	printf("%-14s %-14s %-14s %-14s\n", "watchpoint", "uint32_t", "int32_t", "expression");
 	printf("| %-12d | 0x%-10x | %-12d | %s\n",
 			new_node->NO, (uint32_t)new_node->value, (int32_t)new_node->value, new_node->expr);
@@ -102,8 +102,8 @@ void create_watchpoint(char* args) {
 void delete_watchpoint(int no) {
 	WP *current = head;
 
-	printf("%s\n", ANSI_FMT("Deleting watchpoint:", ANSI_FG_GREEN));
-	printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
+	printf("%s\n", ANSI_FMT("Deleting watchpoint:", ANSI_FG_LIGHTPINK));
+	printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
 	printf("%-14s %-14s %-14s %-14s\n", "watchpoint", "uint32_t", "int32_t", "expression");
 	while (current != NULL) {
 		if (current->NO == no) {
@@ -119,14 +119,14 @@ void delete_watchpoint(int no) {
 
 void sdb_watchpoint_display() {
 	if (head == NULL) {
-		printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
+		printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
 		printf("No watchpoint.\n");
 		return;
 	}
 
 	WP *current = head;
-	printf("%s\n", ANSI_FMT("Displaying watchpoint:", ANSI_FG_GREEN));
-	printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
+	printf("%s\n", ANSI_FMT("Displaying watchpoint:", ANSI_FG_LIGHTPINK));
+	printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
 	printf("%-14s %-14s %-14s %-14s\n", "watchpoint", "uint32_t", "int32_t", "expression");
 	while (current != NULL) {
 		printf("| %-12d | 0x%-10x | %-12d | %s\n",
@@ -141,8 +141,8 @@ void check_watchpoint(void) {
 		return;
 	}
 	int cnt = 0;
-	printf("%s\n", ANSI_FMT("Checking watchpoint:", ANSI_FG_GREEN));
-	printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
+	printf("%s\n", ANSI_FMT("Checking watchpoint:", ANSI_FG_LIGHTPINK));
+	printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
 	printf("%-14s %-14s %-14s %-14s\n", "watchpoint", "old_value", "new_value", "expression");
 	for (WP *wp = head; wp; wp = wp->next, cnt++) {
 		bool success = true;

@@ -72,8 +72,6 @@ static int cmd_d (char* args) {
 		return 0;
 	}
 	char *num_str = strtok(args, " ");
-	// printf("Deleting watchpoint:\n");
-	// printf("%-12s %-12s %-12s %-12s %-12s\n","PC","Watchpoint","int32_t","uint32_t","expression");
 	while (num_str != NULL) {
 		int num = atoi(num_str);
 		delete_watchpoint(num);
@@ -86,6 +84,28 @@ static int cmd_d (char* args) {
 static int cmd_w(char* args) {
 	if (args == NULL) printf("No args.\n");
 	create_watchpoint(args);
+	return 0;
+}
+
+static int cmd_x(char* args){
+	char *num_str = strtok(args, " ");
+	int num = atoi(num_str);
+	char *expr_str = args + strlen(num_str) + 1;
+	bool success = true;
+	uint32_t expr_num = (uint32_t)expr(expr_str, &success);
+	if (!success) {
+    printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
+		printf("Calculating error\n");
+		return 0;
+	}
+  printf("%s\n", ANSI_FMT("Scaning memory and displaying corresponding value:", ANSI_FG_LIGHTPINK));
+  printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
+	printf("%-14s %-14s %-14s\n", "address", "uint32_t", "int32_t");
+	for (int i = 0; i < num; i++) {
+		uint32_t mem = expr_num + 4 * i;
+		paddr_t value = pmem_read(mem);
+		printf("| 0x%-10x | 0x%-10x | %-12d\n", mem, (uint32_t)value, (int32_t)value);
+	}
 	return 0;
 }
 
@@ -102,8 +122,8 @@ static int cmd_p(char* args) {
     return 0;
 	}
 
-	printf("%s\n", ANSI_FMT("Calculating expression:", ANSI_FG_GREEN));
-  printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
+	printf("%s\n", ANSI_FMT("Calculating expression:", ANSI_FG_LIGHTPINK));
+  printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
 	printf("%s%-14s %-14s %-14s%s\n", ANSI_FG_BLACK, "uint32_t", "int32_t", "expression", ANSI_NONE);
 	printf("| %s0x%-10x | %-12d | %s%s\n", ANSI_FG_BLACK, (uint32_t)val, (int32_t)val, args, ANSI_NONE);
 	return 0;
@@ -119,6 +139,7 @@ static struct {
   { "q"   , "Exit NEMU", cmd_q },
   { "si"  , "Let the program pause execution after running N instructions step by step. When N is not given, it defaults to 1", cmd_si },
 	{ "info", "Print register status - r, print watchpoint information - w", cmd_info },
+  { "x"   , "Calculate the value of the expression EXPR, and use the result as the starting memory address, output the continous N bytes in hexadecimal format.Usage: x N EXPR", cmd_x },
   { "p"   , "Evaluate the expression EXPR.", cmd_p },
 	{ "w"   , "Set watchpoints.When the value of the expression EXPR changes, pause the program execution", cmd_w},
 	{ "d"   , "Delete the watchpoint with serial number N", cmd_d},
@@ -132,7 +153,7 @@ static int cmd_help(char *args) {
   char *arg = strtok(NULL, " ");
   int i;
 
-  printf("pc = %s%08x%s\n", ANSI_FG_BLACK, pc, ANSI_NONE);
+  printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
 
   if (arg == NULL) {
     /* no argument given */

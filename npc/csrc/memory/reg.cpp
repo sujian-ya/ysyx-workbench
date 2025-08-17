@@ -13,8 +13,8 @@ const char *regs[] = {
 
 // 打印 NPC 的寄存器
 void npc_reg_display() {
-    printf("%s\n", ANSI_FMT("Displaying reg:", ANSI_FG_GREEN));
-    printf("pc = %s%08x%s\n", ANSI_FG_BLACK, pc, ANSI_NONE);
+    printf("%s\n", ANSI_FMT("Displaying reg:", ANSI_FG_LIGHTPINK));
+    printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
     printf("%s%-14s %-14s %-14s%s\n", ANSI_FG_BLACK, "reg_name", "uint32_t", "int32_t", ANSI_NONE);
     for (int i = 0; i < REG_NUM; i++) {
         printf("| %s%-12s | 0x%-10x | %-12d%s\n", ANSI_FG_BLACK, regs[i], reg[i], (int32_t)reg[i], ANSI_NONE);
