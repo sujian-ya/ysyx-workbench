@@ -10,6 +10,7 @@ module ysyx_25040105_soc_top (
 import "DPI-C" function void sys_exit(int exit_state);
 import "DPI-C" function void sim_get_regs(output logic [31:0] rf[32]);
 // import "DPI-C" function void sim_get_pc(input bit [31:0] rtl_pc[1]);
+import "DPI-C" function void sim_get_inst(input bit [31:0] rtl_inst[1]);
 
 // IFU
 wire jump_en; // 跳转使能信号
@@ -72,13 +73,19 @@ wire is_ebreak = (inst == 32'h00100073);
 wire a0_state  = (rf[10] == 32'h0); // a0寄存器的值
 wire [31:0] exit_state = {31'h0, is_ebreak && a0_state};
 // bit [31:0] rtl_pc [1];
+bit [31:0] rtl_inst [1];
 
 // 在时钟边沿调用函数，确保数据稳定
 always @(posedge clk) begin
     // rtl_pc[0] = pc;  // 将pc的值写入数组
+    rtl_inst[0] = inst;
+    
     // sim_get_pc(rtl_pc);
+    sim_get_inst(rtl_inst);
     sim_get_regs(rf);
-
+    // $display("Verilog sending pc: %h", pc);
+    // $display("Verilog sending inst: %h", inst);
+     
     if (is_ebreak) begin
         sys_exit(exit_state);
     end

@@ -18,8 +18,9 @@ void sim_exit();
 void single_cycle(Vysyx_25040105_soc_top &dut);
 void reset (int n);
 
-// 定义PC和寄存器
-uint32_t pc = 0x80000000;
+// 定义PC, 指令和寄存器
+uint32_t pc      = 0x80000000;
+uint32_t inst    = 0x0;
 uint32_t reg[32] = {0};
 
 extern "C" void sys_exit(int exit_state) {
@@ -35,6 +36,10 @@ extern "C" void sim_get_regs(uint32_t rf[32]) {
 // extern "C" void sim_get_pc(uint32_t* rtl_pc) {
 //     pc = rtl_pc[0];
 // }
+
+extern "C" void sim_get_inst(uint32_t* rtl_inst) {
+    inst = rtl_inst[0];
+}
 
 static void sim_get_pc() {
     pc = top->pc;
