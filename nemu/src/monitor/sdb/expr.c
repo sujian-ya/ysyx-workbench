@@ -31,21 +31,21 @@
 uint32_t eval(int p, int q, bool *success);
 
 enum {
-  TK_NOTYPE = 256, /* ' ' */
-  TK_EQ,           /* '==' */
-	TK_NEQ,					 /* '!=' */
-	TK_AND,					 /* '&&' */
-	TK_DEREF,				 /* '*' as dereference */
-	TK_SUBTRACT,     /* minus number */
-	TK_NUMBER,			 /* decimal integer */
-	TK_HEX,					 /* hexadecimal number */
-	TK_REG,					 /* register */
-	TK_PLUS,				 /* '+' */
-	TK_MINUS,				 /* '-' */
-	TK_MUL,					 /* '*' */
-	TK_DIV,					 /* '/' */
-	TK_LPAREN,			 /* '(' */
-	TK_RPAREN,       /* ')' */
+	TK_NOTYPE = 256, 		/* ' ' */
+	TK_EQ,           		/* '==' */
+	TK_NEQ,					/* '!=' */
+	TK_AND,					/* '&&' */
+	TK_DEREF,				/* '*' as dereference */
+	TK_SUBTRACT,     		/* minus number */
+	TK_NUMBER,			 	/* decimal integer */
+	TK_HEX,					/* hexadecimal number */
+	TK_REG,					/* register */
+	TK_PLUS,				/* '+' */
+	TK_MINUS,				/* '-' */
+	TK_MUL,					/* '*' */
+	TK_DIV,					/* '/' */
+	TK_LPAREN,			 	/* '(' */
+	TK_RPAREN,       		/* ')' */
 	// Newly added.
 
   /* TODO: Add more token types */
