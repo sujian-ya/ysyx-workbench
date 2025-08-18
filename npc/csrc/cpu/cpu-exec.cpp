@@ -17,23 +17,67 @@ extern void sim_exit();
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 
+// static void exec_once() {
+//   single_cycle(*top);
+//   top->inst = pmem_read(top->pc);
+//   top->eval();
+// #ifdef CONFIG_WATCHPOINT
+// check_watchpoint();
+// #endif
+// }
+
+void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
 static void exec_once() {
+  // 保存当前 PC，因为 single_cycle 可能会改变它
+  vaddr_t prev_pc = top->pc;
+
+  // 执行一个周期，可能读入指令并更新 PC
   single_cycle(*top);
   top->inst = pmem_read(top->pc);
   top->eval();
+
+  // 获取指令长度。假设指令是4字节，或者通过其他方式获取
+  int ilen = 4; // RISC-V usually 4 bytes
+  uint32_t inst_code = top->inst;
+
+#ifdef CONFIG_ITRACE
+  char logbuf[128]; // 本地日志缓冲区
+  char *p = logbuf;
+
+  // 1. 打印 PC 地址
+  p += snprintf(p, sizeof(logbuf), FMT_WORD ":", prev_pc);
+
+  // 2. 打印机器码
+  uint8_t *inst_bytes = (uint8_t *)&inst_code;
+  // RISC-V 通常逆序打印机器码，以符合小端序的可读性
+  for (int i = ilen - 1; i >= 0; i--) {
+      p += snprintf(p, 4, " %02x", inst_bytes[i]);
+  }
+
+  // 3. 添加对齐空格
+  int ilen_max = 4; // For RISC-V
+  int space_len = ilen_max * 3 + 1 - (ilen * 3);
+  if (space_len < 0) space_len = 0;
+  memset(p, ' ', space_len);
+  p += space_len;
+
+  // 4. 反汇编并打印到日志缓冲区
+  disassemble(p, sizeof(logbuf) - (p - logbuf), prev_pc, inst_bytes, ilen);
+
+  // 5. 打印日志
+  // Log("%s", logbuf);
+  printf("%s\n", logbuf);
+#endif
+#ifdef CONFIG_WATCHPOINT
+  check_watchpoint();
+#endif
 }
 
 // NPC执行函数
 static void execute(uint64_t n) {
   for(; n > 0; n--) {
-    // single_cycle(*top);
-    // top->inst = pmem_read(top->pc);
-    // top->eval();
     exec_once();
     g_nr_guest_inst ++;
-#ifdef CONFIG_WATCHPOINT
-check_watchpoint();
-#endif
     if(npc_state.state != NPC_RUNNING) break;
   }
 }

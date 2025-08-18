@@ -10,7 +10,7 @@ extern void init_log(const char *log_file);
 // void init_difftest(char *ref_so_file, long img_size, int port);
 // void init_device();
 void init_sdb();
-// void init_disasm();
+void init_disasm();
 
 extern unsigned char npc_logo[];
 static void welcome() {
@@ -125,7 +125,7 @@ void init_monitor(int argc, char *argv[]) {
   // /* Initialize the simple debugger. */
   init_sdb();
 
-  // IFDEF(CONFIG_ITRACE, init_disasm());
+  IFDEF(CONFIG_ITRACE, init_disasm());
 
   // // IFDEF(CONFIG_FTRACE, init_elf(elf_file));
   // init_elf(elf_file);
