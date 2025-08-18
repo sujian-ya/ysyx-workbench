@@ -67,6 +67,7 @@ static void exec_once() {
   // 5. 打印日志
   // Log("%s", logbuf);
   printf("%s\n", logbuf);
+  log_write("%s\n", logbuf);
 #endif
 #ifdef CONFIG_WATCHPOINT
   check_watchpoint();

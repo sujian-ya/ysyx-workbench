@@ -61,17 +61,17 @@ static struct rule {
    * Pay attention to the precedence level of different rules.
    */
 
-  {" +", TK_NOTYPE},					// spaces
-  {"==", TK_EQ},							// equal
-	{"!=", TK_NEQ},							// not equal
-	{"&&", TK_AND},							// logical and
-	{"0x[0-9a-fA-F]+", TK_HEX}, // hexadecimal number
-	{"\\$[0-9a-zA-Z]+", TK_REG},   // register
-	{"[0-9]+", TK_NUMBER},			// decimal integer
-  {"\\+", TK_PLUS},						// plus
-	{"-", TK_MINUS},						// minus or minus number
-	{"\\*", TK_MUL},						// multiply or dereference
-	{"/", TK_DIV},							// divide
+	{" +", TK_NOTYPE},					// spaces
+	{"==", TK_EQ},						// equal
+	{"!=", TK_NEQ},						// not equal
+	{"&&", TK_AND},						// logical and
+	{"0x[0-9a-fA-F]+", TK_HEX}, 		// hexadecimal number
+	{"\\$[$0-9a-zA-Z]+", TK_REG},   		// register
+	{"[0-9]+", TK_NUMBER},				// decimal integer
+	{"\\+", TK_PLUS},					// plus
+	{"-", TK_MINUS},					// minus or minus number
+	{"\\*", TK_MUL},					// multiply or dereference
+	{"/", TK_DIV},						// divide
 	{"\\(", TK_LPAREN},					// left parenthesis
 	{"\\)", TK_RPAREN},					// right parenthesis
 };
