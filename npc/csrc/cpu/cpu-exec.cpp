@@ -5,7 +5,6 @@
 #include <debug.h>
 #include <common.h>
 #include <ysyx_25040105_soc_top.h>
-// #include <stdint.h>
 
 // 状态变量
 NPCState npc_state = { .state = NPC_STOP };
@@ -18,12 +17,19 @@ extern void sim_exit();
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 
+static void exec_once() {
+  single_cycle(*top);
+  top->inst = pmem_read(top->pc);
+  top->eval();
+}
+
 // NPC执行函数
 static void execute(uint64_t n) {
   for(; n > 0; n--) {
-    single_cycle(*top);
-    top->inst = pmem_read(top->pc);
-    top->eval();
+    // single_cycle(*top);
+    // top->inst = pmem_read(top->pc);
+    // top->eval();
+    exec_once();
     g_nr_guest_inst ++;
 #ifdef CONFIG_WATCHPOINT
 check_watchpoint();

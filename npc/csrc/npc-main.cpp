@@ -4,11 +4,18 @@
 extern void init_npc(int argc, char *argv[]);
 extern void sdb_mainloop();
 extern void init_sdb();
+extern void init_monitor(int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
+  for (int i = 0; i < argc; i++) {
+    printf("argv[%d]: %s\n", i, argv[i]);
+  }
+#ifdef CONFIG_TARGET_AM
+  am_init_monitor();
+#else
+  init_monitor(argc, argv);
+#endif
 
-    init_npc(argc, argv);
-    init_sdb();
     sdb_mainloop();
     
     return 0;

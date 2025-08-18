@@ -2,6 +2,9 @@
 TOPNAME = ysyx_25040105_soc_top
 # INC_PATH ?= $(abspath ./include)
 INC_PATH := $(shell find $(abspath ./include) -type d)
+# Include all filelist.mk to merge file lists
+FILELIST_MK = $(shell find -L ./csrc -name "filelist.mk")
+include $(FILELIST_MK)
 
 VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -cc  \
@@ -10,6 +13,8 @@ VERILATOR_CFLAGS += -MMD --build -cc  \
 BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
+
+override ARGS ?= --log=$(BUILD_DIR)/npc-log.txt
 
 default: $(BIN)
 
@@ -44,7 +49,7 @@ $(BIN): $(VSRCS) $(CSRCS)
 run: $(BIN) $(BIN_FILES)
 	$(call git_commit, "sim RTL without NVBoard")
 	@echo "######## Simulation beginning ########"
-	@$(BIN)  $(BIN_FILES)
+	@$(BIN) $(BIN_FILES) $(ARGS)
 	@echo "######## Simulation finished ########"
 
 # 生成波形文件
