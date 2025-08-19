@@ -1,13 +1,13 @@
-#include <ftrace.h>
 #include <elf.h>
+#include <ftrace.h>
 #include <common.h>
 
 #ifdef FTRACE_COND
 #define STACK_DEPTH 1024
-// 定义函数调用栈
+// 定义函数调用栈，现在存储的是被调用函数的入口地址
 static vaddr_t call_stack[STACK_DEPTH];
 // 记录函数调用栈的深度
-static int stack_ptr = -1;
+static int stack_ptr = -1; // -1 表示栈空
 
 #define SYM_NUM 1024
 static struct {
@@ -17,16 +17,15 @@ static struct {
 static int sym_count = 0;
 #endif
 
-
 long load_elf(const char *elf_file) {
     if (!elf_file) {
         Log("No elf is given. Use the default build-in elf.");
-        return 0; // built-in elf size
+        return 0; // Indicate no ELF loaded
     }
     FILE *fp = fopen(elf_file, "rb");
     if (!fp) {
         log_write("Can not open '%s'", elf_file);
-        return 0;
+        return 0; // Indicate failure to open
     }
 
     fseek(fp, 0, SEEK_END);
@@ -35,14 +34,17 @@ long load_elf(const char *elf_file) {
     Log("The elf is %s, size = %ld", elf_file, size);
 
     fclose(fp);
-    return 1;
+    return 1; // Indicate success
 }
 
 void init_elf(const char *elf_file) {
+    // This initial call to load_elf is redundant as init_elf will re-open and parse.
+    // It's mostly for logging/initial check.
     long load_ret = load_elf(elf_file);
     if (load_ret == 0) {
         return;
     }
+
 #ifdef FTRACE_COND
     FILE *fp = fopen(elf_file, "rb");
     if (!fp) {
@@ -56,6 +58,7 @@ void init_elf(const char *elf_file) {
         fclose(fp);
         return;
     }
+    // Basic ELF magic number check
     if (ehdr.e_ident[EI_MAG0] != ELFMAG0 || ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
         ehdr.e_ident[EI_MAG2] != ELFMAG2 || ehdr.e_ident[EI_MAG3] != ELFMAG3) {
         log_write("Not a valid ELF file: %s\n", elf_file);
@@ -63,7 +66,9 @@ void init_elf(const char *elf_file) {
         return;
     }
 
-    // 读取所有节头
+    // Read all section headers
+    // Using a VLA (Variable Length Array) which is a C99 feature.
+    // For C89/C++ compatibility, dynamic allocation would be needed.
     Elf32_Shdr shdrs[ehdr.e_shnum];
     fseek(fp, ehdr.e_shoff, SEEK_SET);
     if (fread(shdrs, sizeof(Elf32_Shdr), ehdr.e_shnum, fp) != ehdr.e_shnum) {
@@ -72,17 +77,17 @@ void init_elf(const char *elf_file) {
         return;
     }
 
-    // 找到符号表节和对应的字符串表节
+    // Find symbol table section and its corresponding string table section
     Elf32_Shdr *symtab_sh = NULL;
     Elf32_Shdr *strtab_sh = NULL;
     for (int i = 0; i < ehdr.e_shnum; i++) {
         if (shdrs[i].sh_type == SHT_SYMTAB) {
             symtab_sh = &shdrs[i];
-            // sh_link 指向字符串表节的索引
+            // sh_link points to the index of the string table section
             if (symtab_sh->sh_link < ehdr.e_shnum) {
                 strtab_sh = &shdrs[symtab_sh->sh_link];
             }
-            break;
+            break; // Found SYMTAB, no need to continue
         }
     }
     if (!symtab_sh || !strtab_sh) {
@@ -91,7 +96,7 @@ void init_elf(const char *elf_file) {
         return;
     }
 
-    // 读取字符串表到内存
+    // Read string table into memory
     char *strtab = (char *)malloc(strtab_sh->sh_size);
     if (!strtab) {
         log_write("Failed to allocate memory for string table\n");
@@ -101,95 +106,104 @@ void init_elf(const char *elf_file) {
     fseek(fp, strtab_sh->sh_offset, SEEK_SET);
     if (fread(strtab, 1, strtab_sh->sh_size, fp) != strtab_sh->sh_size) {
         log_write("Failed to read string table from: %s\n", elf_file);
-        free(strtab);
+        free(strtab); // Free allocated memory on failure
         fclose(fp);
         return;
     }
 
-    // 读取符号表并解析函数符号
+    // Read symbol table and parse function symbols
     int nsyms = symtab_sh->sh_size / sizeof(Elf32_Sym);
     fseek(fp, symtab_sh->sh_offset, SEEK_SET);
     for (int i = 0; i < nsyms; i++) {
         Elf32_Sym sym;
         if (fread(&sym, sizeof(Elf32_Sym), 1, fp) != 1) {
             log_write("Failed to read symbol at index %d from: %s\n", i, elf_file);
-            break;
+            break; // Stop on read error
         }
+        // Only process function type symbols that have a name and fit in our table
         if (ELF32_ST_TYPE(sym.st_info) == STT_FUNC && sym.st_name != 0 && sym_count < SYM_NUM) {
-            strncpy(sym_table[sym_count].name, strtab + sym.st_name, 63);
-            sym_table[sym_count].name[63] = '\0';
+            strncpy(sym_table[sym_count].name, strtab + sym.st_name, sizeof(sym_table[0].name) - 1);
+            sym_table[sym_count].name[sizeof(sym_table[0].name) - 1] = '\0'; // Ensure null-termination
             sym_table[sym_count].addr = sym.st_value;
             sym_count++;
         }
     }
 
-    free(strtab);
-
-    // 输出elf解析出的函数，用于调试
-    // for (int i = 0; i < sym_count; i++) {
-    //     printf("Symbol: %s at 0x%08x\n", sym_table[i].name, sym_table[i].addr);
-    // }
-
-    fclose(fp);
+    free(strtab); // Free allocated string table memory
+    fclose(fp);   // Close the ELF file
     return;
 #endif
 }
 
 #ifdef FTRACE_COND
+// 根据地址获取函数名。现在addr应该是一个函数入口地址，所以我们期望精确匹配。
 static const char *get_func_name(vaddr_t addr) {
-    const char *name = "???";
-    vaddr_t best = 0;
+    // 遍历符号表查找匹配的函数地址
     for (int i = 0; i < sym_count; i++) {
-        if (sym_table[i].addr <= addr && sym_table[i].addr >= best) {
-            best = sym_table[i].addr;
-            name = sym_table[i].name;
+        if (sym_table[i].addr == addr) {
+            return sym_table[i].name;
         }
     }
-    return name;
+    // 如果没有找到精确匹配，返回未知
+    return "???";
 }
 #endif
 
 void ftrace_call(vaddr_t pc, vaddr_t target) {
 #ifdef FTRACE_COND
-    stack_ptr++;
-    if (stack_ptr >= STACK_DEPTH) {
-        log_write("Function call stack overflow!\n");
-        stack_ptr--;
+    // 检查栈是否会溢出
+    if (stack_ptr + 1 >= STACK_DEPTH) {
+        log_write("Function call stack overflow! (PC: 0x%08x, Target: 0x%08x)\n", pc, target);
+        // 在溢出时，不进行压栈操作，直接返回。
         return;
     }
-    call_stack[stack_ptr] = pc;
+    
+    // 计算即将压栈后的深度所对应的缩进级别
+    // stack_ptr 是当前栈深度 - 1。新的深度是 stack_ptr + 1。
+    char indent[(stack_ptr + 1) * 2 + 1];
+    memset(indent, ' ', (stack_ptr + 1) * 2);
+    indent[(stack_ptr + 1) * 2] = '\0';
+    
+    // 获取目标函数名称
     const char *func_name = get_func_name(target);
-    vaddr_t func_addr = 0;
-    for (int i = 0; i < sym_count; i++) {
-        if (strcmp(sym_table[i].name, func_name) == 0) {
-            func_addr = sym_table[i].addr;
-            break;
-        }
-    }
-    char indent[stack_ptr * 2 + 1];
-    memset(indent, ' ', stack_ptr * 2);
-    indent[stack_ptr * 2] = '\0';
+    // target 就是函数的入口地址
+    vaddr_t func_addr = target; 
+    
+    // 打印调用日志
     log_write("0x%08x: %scall [%s@0x%08x+0x%x]\n", pc, indent, func_name, func_addr, target - func_addr);
+
+    // 压入目标函数的入口地址，然后更新栈指针
+    stack_ptr++;
+    call_stack[stack_ptr] = target;
     return;
 #endif
 }
 
 void ftrace_ret(vaddr_t pc, vaddr_t ret_addr) {
 #ifdef FTRACE_COND
-    if (stack_ptr >= 0) {
-        const char *func_name = get_func_name(call_stack[stack_ptr]);
-        vaddr_t func_addr = 0;
-        for (int i = 0; i < sym_count; i++) {
-            if (strcmp(sym_table[i].name, func_name) == 0) {
-                func_addr = sym_table[i].addr;
-                break;
-            }
-        }
-        char indent[stack_ptr * 2 + 1];
-        memset(indent, ' ', stack_ptr * 2);
-        indent[stack_ptr * 2] = '\0';
-        log_write("0x%08x: %sret  [%s@0x%08x]\n", pc, indent, func_name, func_addr);
-        stack_ptr--;
+    // 检查栈是否会下溢
+    if (stack_ptr < 0) {
+        log_write("Function call stack underflow! (PC: 0x%08x, Return_Target: 0x%08x)\n", pc, ret_addr);
+        return;
     }
+    
+    // 获取当前栈顶存储的函数入口地址
+    vaddr_t func_entry_addr_on_stack = call_stack[stack_ptr];
+
+    // 获取函数名称
+    const char *func_name = get_func_name(func_entry_addr_on_stack);
+    // 函数地址就是栈上存储的入口地址
+    vaddr_t func_addr = func_entry_addr_on_stack; 
+
+    // 计算缩进，使用当前栈深度（出栈前的深度）
+    char indent[stack_ptr * 2 + 1];
+    memset(indent, ' ', stack_ptr * 2);
+    indent[stack_ptr * 2] = '\0';
+    
+    // 打印返回日志
+    log_write("0x%08x: %sret  [%s@0x%08x]\n", pc, indent, func_name, func_addr);
+
+    // 出栈
+    stack_ptr--;
 #endif
 }

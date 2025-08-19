@@ -96,12 +96,19 @@ static int decode_exec(Decode *s) {
   INSTPAT("0110000 00000 ????? 001 ????? 00100 11", clz    , I, R(rd) = __builtin_clz(src1));
   INSTPAT("0110000 00001 ????? 001 ????? 00100 11", ctz    , I, R(rd) = __builtin_ctz(src1));
   INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr, I, {
-    s->dnpc = src1 + imm;
-    R(rd) = s->pc + 4;
-    if (rd == 0 && src1 == R(1) && imm == 0) { // ret: jalr x0, x1, 0
-      ftrace_ret(s->pc + 4, s->dnpc);
+    word_t old_pc = s->pc;
+    word_t next_pc = src1 + imm;
+    R(rd) = old_pc + 4;
+    s->dnpc = next_pc;
+
+    // Heuristic check for function return:
+    // Usually, a function return is `jalr x0, x1, 0`.
+    // We can be more generic: if rd is not a link register and src1 is the link register.
+    // The most common case is `jalr x0, ra, 0`, where ra (x1) holds the return address.
+    if (rd == 0 && (src1 == R(1) || src1 == R(5))) { // ra (x1) or t0 (x5)
+      ftrace_ret(old_pc, next_pc);
     } else {
-      ftrace_call(s->pc + 4, s->dnpc);
+      ftrace_call(old_pc, next_pc);
     }
   });
   INSTPAT("??????? ????? ????? 001 ????? 00000 11", lh     , I, R(rd) = ((int32_t)(Mr(src1 + imm, 2) << 16) >> 16));
@@ -125,7 +132,12 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? ??? ????? 01101 11", lui    , U, R(rd) = imm);
 
   // J-type instructions
-  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal, J, R(rd) = s->pc + 4; s->dnpc = s->pc + imm; ftrace_call(s->pc + 4, s->dnpc));
+  // INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal, J, R(rd) = s->pc + 4; s->dnpc = s->pc + imm; ftrace_call(s->pc + 4, s->dnpc));
+  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal, J, {
+    R(rd) = s->pc + 4;
+    s->dnpc = s->pc + imm;
+    ftrace_call(s->pc, s->dnpc); // PC is the call instruction address
+  });
 
   // B-type instructions (branch)
   INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq    , B, if (src1 == src2) s->dnpc = s->pc + imm);

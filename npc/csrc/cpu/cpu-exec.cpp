@@ -17,15 +17,6 @@ extern void sim_exit();
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 
-// static void exec_once() {
-//   single_cycle(*top);
-//   top->inst = pmem_read(top->pc);
-//   top->eval();
-// #ifdef CONFIG_WATCHPOINT
-// check_watchpoint();
-// #endif
-// }
-
 void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
 static void exec_once() {
   // 保存当前 PC，因为 single_cycle 可能会改变它
@@ -65,9 +56,7 @@ static void exec_once() {
   disassemble(p, sizeof(logbuf) - (p - logbuf), prev_pc, inst_bytes, ilen);
 
   // 5. 打印日志
-  // Log("%s", logbuf);
-  printf("%s\n", logbuf);
-  log_write("%s\n", logbuf);
+  _Log("%s\n", logbuf);
 #endif
 #ifdef CONFIG_WATCHPOINT
   check_watchpoint();
