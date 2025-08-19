@@ -170,7 +170,7 @@ void ftrace_call(vaddr_t pc, vaddr_t target) {
     vaddr_t func_addr = target; 
     
     // 打印调用日志
-    log_write("0x%08x: %scall [%s@0x%08x+0x%x]\n", pc, indent, func_name, func_addr, target - func_addr);
+    _Log("0x%08x: %scall [%s@0x%08x+0x%x]\n", pc, indent, func_name, func_addr, target - func_addr);
 
     // 压入目标函数的入口地址，然后更新栈指针
     stack_ptr++;
@@ -201,7 +201,7 @@ void ftrace_ret(vaddr_t pc, vaddr_t ret_addr) {
     indent[stack_ptr * 2] = '\0';
     
     // 打印返回日志
-    log_write("0x%08x: %sret  [%s@0x%08x]\n", pc, indent, func_name, func_addr);
+    _Log("0x%08x: %sret  [%s@0x%08x]\n", pc, indent, func_name, func_addr);
 
     // 出栈
     stack_ptr--;
