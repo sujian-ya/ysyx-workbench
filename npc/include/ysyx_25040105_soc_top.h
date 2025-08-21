@@ -9,7 +9,7 @@
 extern VerilatedContext* contextp;
 extern Vysyx_25040105_soc_top* top;
 
-void sim_init(const char* bin_file);
+void sim_init();
 void sim_exit();
 void reset(int n);
 void single_cycle(Vysyx_25040105_soc_top &dut);

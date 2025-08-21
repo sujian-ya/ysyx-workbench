@@ -13,7 +13,7 @@ Vysyx_25040105_soc_top* top = NULL;
 VerilatedVcdC* tfp = NULL;
 extern NPCState npc_state;
 
-void sim_init(const char* bin_file);
+void sim_init();
 void sim_exit();
 void single_cycle(Vysyx_25040105_soc_top &dut);
 void reset (int n);
@@ -45,7 +45,7 @@ static void sim_get_pc() {
     pc = top->pc;
 }
 
-void sim_init(const char* bin_file) {
+void sim_init() {
     contextp = new VerilatedContext;
     contextp->traceEverOn(true);
     top = new Vysyx_25040105_soc_top(contextp);
@@ -53,8 +53,6 @@ void sim_init(const char* bin_file) {
     top->trace(tfp, 99);
     // 定义波形文件的输出路径
     tfp->open("./build/waveform.vcd");
-    
-    pmem_init(bin_file); // 初始化内存，加载指令
 }
 
 void sim_exit() {

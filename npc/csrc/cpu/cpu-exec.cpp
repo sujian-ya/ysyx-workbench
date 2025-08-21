@@ -22,9 +22,9 @@ static void exec_once() {
   // 保存当前 PC，因为 single_cycle 可能会改变它
   vaddr_t prev_pc = top->pc;
 
-  // 执行一个周期，可能读入指令并更新 PC
-  single_cycle(*top);
+  // 先初始化指令，然后执行一个周期，最后更新PC
   top->inst = pmem_read(top->pc);
+  single_cycle(*top);
   top->eval();
 
   // 获取指令长度。假设指令是4字节，或者通过其他方式获取

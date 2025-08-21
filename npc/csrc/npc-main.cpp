@@ -7,9 +7,6 @@ extern void init_sdb();
 extern void init_monitor(int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
-  for (int i = 0; i < argc; i++) {
-    printf("argv[%d]: %s\n", i, argv[i]);
-  }
 #ifdef CONFIG_TARGET_AM
   am_init_monitor();
 #else

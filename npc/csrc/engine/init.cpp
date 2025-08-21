@@ -4,12 +4,13 @@
 #include <common.h>
 #include <ysyx_25040105_soc_top.h>
 
+void sim_init();
+
 void init_npc(int argc, char *argv[]) {
-  const char* bin_file = NULL;
-  if (argc > 1) {
-    bin_file = argv[1];
-  }
-  sim_init(bin_file);
+  sim_init();
   contextp->commandArgs(argc, argv);
   reset(5);
+  for (int i = 0; i < argc; i++) {
+    Log("NPC-init argc[%d]: %s", i, argv[i]);
+  }
 }

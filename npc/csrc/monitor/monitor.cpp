@@ -1,9 +1,10 @@
 #include <common.h>
+#include <pmem.h>
 #include <init.h>
 #include <sdb.h>
 #include <config.h>
 
-// void init_rand();
+void init_rand();
 void init_log(const char *log_file);
 // void init_elf(const char *elf_file);
 // void init_mem();
@@ -37,27 +38,32 @@ static char *diff_so_file = NULL;
 static char *img_file = NULL;
 static int difftest_port = 1234;
 
-// static long load_img() {
-//   if (img_file == NULL) {
-//     Log("No image is given. Use the default build-in image.");
-//     return 4096; // built-in image size
-//   }
+extern uint32_t *pmem;
+static long load_img() {
+  if (img_file == NULL) {
+    Log("No image is given. Use the default build-in image.");
+    pmem[0] = 0x00000013; // NOP (addi x0, x0, 0)
+    pmem[1] = 0x00100093; // addi x1, x0, 1
+    pmem[2] = 0x00200113; // addi x2, x0, 2
+    pmem[3] = 0x00100073; // EBREAK
+    return 4096; // built-in image size
+  }
 
-//   FILE *fp = fopen(img_file, "rb");
-//   Assert(fp, "Can not open '%s'", img_file);
+  FILE *fp = fopen(img_file, "rb");
+  Assert(fp, "Can not open '%s'", img_file);
 
-//   fseek(fp, 0, SEEK_END);
-//   long size = ftell(fp);
+  fseek(fp, 0, SEEK_END);
+  long size = ftell(fp);
 
-//   Log("The image is %s, size = %ld", img_file, size);
+  Log("The image is %s, size = %ld", img_file, size);
 
-//   fseek(fp, 0, SEEK_SET);
-//   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
-//   assert(ret == 1);
+  fseek(fp, 0, SEEK_SET);
+  int ret = fread(pmem, size, 1, fp);
+  assert(ret == 1);
 
-//   fclose(fp);
-//   return size;
-// }
+  fclose(fp);
+  return size;
+}
 
 static int parse_args(int argc, char *argv[]) {
   const struct option table[] = {
@@ -77,8 +83,8 @@ static int parse_args(int argc, char *argv[]) {
       case 'l': log_file = optarg; break;
       case 'e': elf_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
-      // case 1: img_file = optarg; return 0;
-      case 1: img_file = optarg; break;
+      case 1: img_file = optarg; return 0;
+      // case 1: img_file = optarg; break;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
         printf("\t-b,--batch              run with batch mode\n");
@@ -94,43 +100,45 @@ static int parse_args(int argc, char *argv[]) {
 }
 
 void init_monitor(int argc, char *argv[]) {
-  // /* Perform some global initialization. */
+  /* Perform some global initialization. */
 
-  // /* Parse arguments. */
+  /* Parse arguments. */
   parse_args(argc, argv);
 
-  // /* Set random seed. */
-  // init_rand();
+  /*Init npc corresponding wave and message*/
+  init_npc(argc, argv);
 
-  // /* Open the log file. */
+  /* Set random seed. */
+  init_rand();
+
+  /* Open the log file. */
   init_log(log_file);
 
-  /*Init*/
-  init_npc(argc, argv);
-  // /* Initialize memory. */
-  // init_mem();
+  /* Initialize memory. */
+  init_mem();
 
-  // /* Initialize devices. */
+  /* Initialize devices. */
   // IFDEF(CONFIG_DEVICE, init_device());
 
-  // /* Perform ISA dependent initialization. */
+  /* Perform ISA dependent initialization. */
   // init_isa();
 
-  // /* Load the image to memory. This will overwrite the built-in image. */
+  /* Load the image to memory. This will overwrite the built-in image. */
   // long img_size = load_img();
+  load_img();
 
-  // /* Initialize differential testing. */
+  /* Initialize differential testing. */
   // init_difftest(diff_so_file, img_size, difftest_port);
 
-  // /* Initialize the simple debugger. */
+  /* Initialize the simple debugger. */
   init_sdb();
 
   IFDEF(CONFIG_ITRACE, init_disasm());
 
-  // // IFDEF(CONFIG_FTRACE, init_elf(elf_file));
+  // IFDEF(CONFIG_FTRACE, init_elf(elf_file));
   // init_elf(elf_file);
 
-  // /* Display welcome message. */
+  /* Display welcome message. */
   welcome();
 }
 #else // CONFIG_TARGET_AM
