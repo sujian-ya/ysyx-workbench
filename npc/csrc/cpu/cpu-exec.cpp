@@ -3,6 +3,7 @@
 #include <locale.h>
 #include <utils.h>
 #include <debug.h>
+#include <ftrace.h>
 #include <common.h>
 #include <ysyx_25040105_soc_top.h>
 
@@ -20,18 +21,17 @@ static uint64_t g_timer = 0; // unit: us
 void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
 static void exec_once() {
   // 保存当前 PC，因为 single_cycle 可能会改变它
-  vaddr_t prev_pc = top->pc;
+  vaddr_t prev_pc = pc;
 
   // 先初始化指令，然后执行一个周期，最后更新PC
-  top->inst = pmem_read(top->pc);
+  top->inst = pmem_read(pc);
   single_cycle(*top);
-  top->eval();
-
-  // 获取指令长度。假设指令是4字节，或者通过其他方式获取
-  int ilen = 4; // RISC-V usually 4 bytes
-  uint32_t inst_code = top->inst;
 
 #ifdef CONFIG_ITRACE
+  // 获取指令长度
+  int ilen = 4; // RISC-V usually 4 bytes
+  uint32_t inst_code = top->inst;
+  
   char logbuf[128]; // 本地日志缓冲区
   char *p = logbuf;
 
@@ -58,9 +58,27 @@ static void exec_once() {
   // 5. 打印日志
   _Log("%s\n", logbuf);
 #endif
+
+#ifdef CONFIG_FTRACE
+  int rd = BITS(inst, 11, 7);
+  int rs1 = BITS(inst, 19, 15);
+  // jal: ??????? ????? ????? ??? ????? 11011 11
+  if ((inst & 0x0000007f) == 0x0000006f) {
+    // printf("enter judge\n");
+    if (rd != 0) {ftrace_call(prev_pc, pc);}
+  }
+  // jalr: ??????? ????? ????? 000 ????? 11001 11
+  else if ((inst & 0x0000007f) == 0x00000067 && (inst >> 12 & 0x00000007) == 0) {
+    if(rd == 0 && rs1 == reg[1]) {ftrace_ret(prev_pc, pc);}
+    else {ftrace_call(prev_pc, pc);}
+  }
+  else {/* no operation */}
+#endif
+
 #ifdef CONFIG_WATCHPOINT
   check_watchpoint();
 #endif
+
 }
 
 // NPC执行函数
@@ -90,7 +108,7 @@ void cpu_exec(uint64_t n) {
   // 执行前的状态检查
   switch (npc_state.state) {
     case NPC_END: case NPC_ABORT: case NPC_QUIT:
-      printf("Program execution has ended. To restart the program, exit NEMU and run again.\n");
+      printf("Program execution has ended. To restart the program, exit NPC and run again.\n");
       return;
     default: npc_state.state = NPC_RUNNING;
   }

@@ -16,6 +16,7 @@ void single_cycle(Vysyx_25040105_soc_top &dut);
 
 // 定义PC和寄存器
 extern uint32_t pc;
+extern uint32_t inst;
 extern uint32_t reg[32];
 
 #endif

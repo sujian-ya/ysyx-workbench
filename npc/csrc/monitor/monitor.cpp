@@ -6,7 +6,7 @@
 
 void init_rand();
 void init_log(const char *log_file);
-// void init_elf(const char *elf_file);
+void init_elf(const char *elf_file);
 // void init_mem();
 // void init_difftest(char *ref_so_file, long img_size, int port);
 // void init_device();
@@ -84,7 +84,6 @@ static int parse_args(int argc, char *argv[]) {
       case 'e': elf_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
       case 1: img_file = optarg; return 0;
-      // case 1: img_file = optarg; break;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
         printf("\t-b,--batch              run with batch mode\n");
@@ -133,10 +132,11 @@ void init_monitor(int argc, char *argv[]) {
   /* Initialize the simple debugger. */
   init_sdb();
 
+  /* Initialize the itrace*/
   IFDEF(CONFIG_ITRACE, init_disasm());
 
-  // IFDEF(CONFIG_FTRACE, init_elf(elf_file));
-  // init_elf(elf_file);
+  /* Initialize the ftrace*/
+  IFDEF(CONFIG_FTRACE, init_elf(elf_file));
 
   /* Display welcome message. */
   welcome();
