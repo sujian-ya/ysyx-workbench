@@ -1,5 +1,5 @@
-#ifndef __FTRACE_H__
-#define __FTRACE_H__
+#ifndef __DEBUG_FTRACE_H__
+#define __DEBUG_FTRACE_H__
 
 #include <common.h>
 

@@ -16,7 +16,7 @@
 // #define CONFIG_WATCHPOINT 1
 
 // disasm.cpp
-// #define CONFIG_ITRACE 1
+#define CONFIG_ITRACE 1
 #define CONFIG_ISA_riscv 1
 
 // ftrace.cpp

@@ -3,7 +3,6 @@
 #include <locale.h>
 #include <utils.h>
 #include <debug.h>
-#include <ftrace.h>
 #include <common.h>
 #include <ysyx_25040105_soc_top.h>
 
@@ -56,7 +55,10 @@ static void exec_once() {
   disassemble(p, sizeof(logbuf) - (p - logbuf), prev_pc, inst_bytes, ilen);
 
   // 5. 打印日志
+  strcpy(iringbuf[iringbuf_index].logbuf, logbuf);
+  iringbuf_index = (iringbuf_index + 1) % IRINGBUF_SIZE;
   _Log("%s\n", logbuf);
+
 #endif
 
 #ifdef CONFIG_FTRACE
@@ -124,6 +126,7 @@ void cpu_exec(uint64_t n) {
   switch (npc_state.state) {
     case NPC_RUNNING: npc_state.state = NPC_STOP; break;
     case NPC_ABORT:
+      display_iringbuf();
     case NPC_END:
       Log("npc: %s at pc = " FMT_WORD,
           (npc_state.state == NPC_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :

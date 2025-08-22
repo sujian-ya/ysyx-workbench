@@ -4,6 +4,8 @@
 #include <common.h>
 #include <stdio.h>
 #include <utils.h>
+#include <debug/itrace.h>
+#include <debug/ftrace.h>
 
 #define Log(format, ...) \
     _Log(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", \
