@@ -7,7 +7,8 @@
 
 // init.cpp
 // 客服端isa选择
-#define __GUEST_ISA__ riscv32e
+#define __GUEST_ISA__ riscv32
+#define CONFIG_ISA_riscv 1
 
 // reg.cpp
 #define REG_NUM 32
@@ -20,6 +21,12 @@
 #define CONFIG_ISA_riscv 1
 
 // ftrace.cpp
-#define CONFIG_FTRACE 1
+// #define CONFIG_FTRACE 1
+
+// difftest
+#define CONFIG_DIFFTEST 1
+
+// pmem
+#define CONFIG_PC_RESET_OFFSET 0x0
 
 #endif

@@ -1,6 +1,4 @@
 #include <common.h>
-#include <utils.h>
-#include <pmem.h>
 #include <sdb.h>
 #include "svdpi.h"
 #include "verilated.h"
@@ -12,6 +10,7 @@ VerilatedContext* contextp = NULL;
 Vysyx_25040105_soc_top* top = NULL;
 VerilatedVcdC* tfp = NULL;
 extern NPCState npc_state;
+extern CPU_state cpu;
 
 void sim_init();
 void sim_exit();
@@ -30,7 +29,8 @@ extern "C" void sys_exit(int exit_state) {
 }
 
 extern "C" void sim_get_regs(uint32_t rf[32]) {
-    memcpy(reg, rf, 32 * sizeof(uint32_t));
+    memcpy(reg, rf, 32 * sizeof( uint32_t));
+    memcpy(cpu.gpr, rf, 32 * sizeof(uint32_t));
 }
 
 // extern "C" void sim_get_pc(uint32_t* rtl_pc) {
@@ -43,6 +43,7 @@ extern "C" void sim_get_inst(uint32_t* rtl_inst) {
 
 static void sim_get_pc() {
     pc = top->pc;
+    cpu.pc = top->pc;
 }
 
 void sim_init() {

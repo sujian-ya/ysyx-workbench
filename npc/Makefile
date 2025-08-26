@@ -1,4 +1,3 @@
-# ps2_keyboard shift_seg.v shift_seg ALU prior_encoder selector waterfall_light switch
 TOPNAME = ysyx_25040105_soc_top
 INC_PATH := $(shell find $(abspath ./include) -type d)
 
@@ -14,7 +13,11 @@ BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
+# DIFFTEST_LDFLAGS = $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
+DIFF_REF_SO = $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
+ARGS_DIFF = --diff=$(DIFF_REF_SO)
 override ARGS ?= --log=$(BUILD_DIR)/npc-log.txt
+override ARGS += $(ARGS_DIFF)
 IMG ?= 
 
 default: $(BIN)
@@ -24,17 +27,12 @@ $(shell mkdir -p $(BUILD_DIR))
 # project source
 VSRCS = $(shell find $(abspath ./vsrc) -name "*.v")
 CSRCS = $(shell find $(abspath ./csrc) -type f \( -name "*.c" -o -name "*.cc" -o -name "*.cpp" \))
-# CSRCS = $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-
-# 定义cpu_tests的路径
-# BIN_FILES_PATH ?= /home/sheep/ysyx-workbench/am-kernels/tests/cpu-tests/build
-# 获取该路径下所有.bin文件
-# BIN_FILES = $(wildcard $(BIN_FILES_PATH)/*.bin)
 
 # rules for verilator
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
-LDFLAGS += -lreadline -ltermcap # 链接器选项，包括 readline 和 termcap
+# LDFLAGS += -lreadline -ltermcap $(DIFFTEST_LDFLAGS)# 链接器选项，包括 readline 和 termcap
+LDFLAGS += -lreadline -ltermcap
 
 $(BIN): $(VSRCS) $(CSRCS)
 	@rm -rf $(OBJ_DIR)
@@ -47,11 +45,9 @@ $(BIN): $(VSRCS) $(CSRCS)
 	@$(MAKE) -j -C $(OBJ_DIR) -f V$(TOPNAME).mk
 	@mkdir -p $(BUILD_DIR)  # 确保build目录存在
 
-# run: $(BIN) $(BIN_FILES)
 run: $(BIN)
 	$(call git_commit, "sim RTL without NVBoard")
 	@echo "######## Simulation beginning ########"
-# 	@$(BIN) $(BIN_FILES) $(ARGS)
 	@$(BIN) $(ARGS) $(IMG)
 	@echo "######## Simulation finished ########"
 

@@ -3,6 +3,7 @@ module ysyx_25040105_RegisterFile # (
     DATA_WIDTH = 32
 ) (
     input                    clk,
+    input                    rst,
     input   [ADDR_WIDTH-1:0] raddr1,
     input   [ADDR_WIDTH-1:0] raddr2,
     input   [ADDR_WIDTH-1:0] waddr,
@@ -18,8 +19,16 @@ module ysyx_25040105_RegisterFile # (
 
     // 写操作（0号寄存器恒为0）
     always @(posedge clk) begin
-        if (wen) begin
-            rf[waddr] <= (waddr == 0) ? 32'b0 : wdata;
+        if (rst) begin
+            integer i;
+            for (i = 0; i < 32; i = i + 1) begin
+                rf[i] <= 32'h0;
+            end
+        end
+        else begin
+            if (wen) begin
+                rf[waddr] <= (waddr == 0) ? 32'b0 : wdata;
+            end
         end
     end
 

@@ -1,13 +1,14 @@
 #include <sdb.h>
 #include <cpu.h>
 #include <locale.h>
-#include <utils.h>
-#include <debug.h>
 #include <common.h>
+#include <difftest.h>
 #include <ysyx_25040105_soc_top.h>
 
 // 状态变量
 NPCState npc_state = { .state = NPC_STOP };
+CPU_state cpu = {};
+vaddr_t prev_pc = 0x80000000;
 // 仿真相关的全局变量和函数
 extern Vysyx_25040105_soc_top* top;
 extern void single_cycle(Vysyx_25040105_soc_top &dut);
@@ -17,10 +18,14 @@ extern void sim_exit();
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 
-void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
+static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
+  IFDEF(CONFIG_DIFFTEST, difftest_step(pc, dnpc));
+}
+
 static void exec_once() {
   // 保存当前 PC，因为 single_cycle 可能会改变它
-  vaddr_t prev_pc = pc;
+  // vaddr_t prev_pc = pc;
+  prev_pc = pc;
 
   // 先初始化指令，然后执行一个周期，最后更新PC
   top->inst = pmem_read(pc);
@@ -52,6 +57,7 @@ static void exec_once() {
   p += space_len;
 
   // 4. 反汇编并打印到日志缓冲区
+  void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
   disassemble(p, sizeof(logbuf) - (p - logbuf), prev_pc, inst_bytes, ilen);
 
   // 5. 打印日志
@@ -88,6 +94,8 @@ static void execute(uint64_t n) {
   for(; n > 0; n--) {
     exec_once();
     g_nr_guest_inst ++;
+    printf("prev_pc : 0x%08x, cpu.pc = 0x%08x\n", prev_pc, cpu.pc);
+    trace_and_difftest(prev_pc, cpu.pc);
     if(npc_state.state != NPC_RUNNING) break;
   }
 }
@@ -102,6 +110,7 @@ static void statistic() {
 }
 
 void assert_fail_msg() {
+  npc_reg_display();
   statistic();
 }
 

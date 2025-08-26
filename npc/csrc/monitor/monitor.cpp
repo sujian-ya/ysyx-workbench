@@ -8,7 +8,7 @@ void init_rand();
 void init_log(const char *log_file);
 void init_elf(const char *elf_file);
 // void init_mem();
-// void init_difftest(char *ref_so_file, long img_size, int port);
+void init_difftest(char *ref_so_file, long img_size, int port);
 // void init_device();
 void init_sdb();
 void init_disasm();
@@ -42,6 +42,10 @@ extern uint32_t *pmem;
 static long load_img() {
   if (img_file == NULL) {
     Log("No image is given. Use the default build-in image.");
+    // pmem[0] = 0x00000297; // NOP (addi x0, x0, 0)
+    // pmem[1] = 0x00028823; // addi x1, x0, 1
+    // pmem[2] = 0x0102c503; // addi x2, x0, 2
+    // pmem[3] = 0x00100073; // EBREAK
     pmem[0] = 0x00000013; // NOP (addi x0, x0, 0)
     pmem[1] = 0x00100093; // addi x1, x0, 1
     pmem[2] = 0x00200113; // addi x2, x0, 2
@@ -123,11 +127,11 @@ void init_monitor(int argc, char *argv[]) {
   // init_isa();
 
   /* Load the image to memory. This will overwrite the built-in image. */
-  // long img_size = load_img();
-  load_img();
+  long img_size = load_img();
+  // load_img();
 
   /* Initialize differential testing. */
-  // init_difftest(diff_so_file, img_size, difftest_port);
+  init_difftest(diff_so_file, img_size, difftest_port);
 
   /* Initialize the simple debugger. */
   init_sdb();
