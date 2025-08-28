@@ -53,7 +53,7 @@ static int cmd_si(char* args) {
 	cpu_exec(N);
   if (npc_state.state == NPC_STOP) {
     #ifndef CONFIG_WATCHPOINT
-        printf("pc = %s%08x%s\n", ANSI_FG_GREEN, pc, ANSI_NONE);
+        printf("pc = %s%08x%s\n", ANSI_FG_GREEN, cpu.pc, ANSI_NONE);
     #endif
   }
 	return 0;
@@ -94,12 +94,12 @@ static int cmd_x(char* args){
 	bool success = true;
 	uint32_t expr_num = (uint32_t)expr(expr_str, &success);
 	if (!success) {
-    printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
+    printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK,cpu.pc, ANSI_NONE);
 		printf("Calculating error\n");
 		return 0;
 	}
   printf("%s\n", ANSI_FMT("Scaning memory and displaying corresponding value:", ANSI_FG_LIGHTPINK));
-  printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
+  printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, cpu.pc, ANSI_NONE);
 	printf("%-14s %-14s %-14s\n", "address", "uint32_t", "int32_t");
 	for (int i = 0; i < num; i++) {
 		uint32_t mem = expr_num + 4 * i;
@@ -123,7 +123,7 @@ static int cmd_p(char* args) {
 	}
 
 	printf("%s\n", ANSI_FMT("Calculating expression:", ANSI_FG_LIGHTPINK));
-  printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
+  printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, cpu.pc, ANSI_NONE);
 	printf("%s%-14s %-14s %-14s%s\n", ANSI_FG_BLACK, "uint32_t", "int32_t", "expression", ANSI_NONE);
 	printf("| %s0x%-10x | %-12d | %s%s\n", ANSI_FG_BLACK, (uint32_t)val, (int32_t)val, args, ANSI_NONE);
 	return 0;
@@ -153,7 +153,7 @@ static int cmd_help(char *args) {
   char *arg = strtok(NULL, " ");
   int i;
 
-  printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
+  printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, cpu.pc, ANSI_NONE);
 
   if (arg == NULL) {
     /* no argument given */

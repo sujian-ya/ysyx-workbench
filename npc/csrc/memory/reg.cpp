@@ -14,10 +14,10 @@ const char *regs[] = {
 // 打印 NPC 的寄存器
 void npc_reg_display() {
     printf("%s\n", ANSI_FMT("Displaying reg:", ANSI_FG_LIGHTPINK));
-    printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, pc, ANSI_NONE);
+    printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, cpu.pc, ANSI_NONE);
     printf("%s%-14s %-14s %-14s%s\n", ANSI_FG_BLACK, "reg_name", "uint32_t", "int32_t", ANSI_NONE);
     for (int i = 0; i < REG_NUM; i++) {
-        printf("| %s%-12s | 0x%-10x | %-12d%s\n", ANSI_FG_BLACK, regs[i], reg[i], (int32_t)reg[i], ANSI_NONE);
+        printf("| %s%-12s | 0x%-10x | %-12d%s\n", ANSI_FG_BLACK, regs[i], cpu.gpr[i], (int32_t)cpu.gpr[i], ANSI_NONE);
     }
 }
 
@@ -25,7 +25,7 @@ word_t npc_reg_str2val(const char *s, bool *success) {
 	for (int i = 0; i < REG_NUM; i++) {
 		if (strcmp(s, regs[i]) == 0) {
 			// word_t val = gpr(check_reg_idx(i));
-      word_t val = (word_t)reg[i];
+      word_t val = (word_t)cpu.gpr[i];
 			*success = true;
 			return val;
 		}

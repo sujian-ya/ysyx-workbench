@@ -36,28 +36,28 @@ static void exec_once() {
   char logbuf[128]; // 本地日志缓冲区
   char *p = logbuf;
 
-  // 1. 打印 PC 地址
+  // 打印 PC 地址
   p += snprintf(p, sizeof(logbuf), FMT_WORD ":", prev_pc);
 
-  // 2. 打印机器码
+  // 打印机器码
   uint8_t *inst_bytes = (uint8_t *)&inst_code;
   // RISC-V 通常逆序打印机器码，以符合小端序的可读性
   for (int i = ilen - 1; i >= 0; i--) {
       p += snprintf(p, 4, " %02x", inst_bytes[i]);
   }
 
-  // 3. 添加对齐空格
+  // 添加对齐空格
   int ilen_max = 4; // For RISC-V
   int space_len = ilen_max * 3 + 1 - (ilen * 3);
   if (space_len < 0) space_len = 0;
   memset(p, ' ', space_len);
   p += space_len;
 
-  // 4. 反汇编并打印到日志缓冲区
+  // 反汇编并打印到日志缓冲区
   void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
   disassemble(p, sizeof(logbuf) - (p - logbuf), prev_pc, inst_bytes, ilen);
 
-  // 5. 打印日志
+  // 打印日志
   strcpy(iringbuf[iringbuf_index].logbuf, logbuf);
   iringbuf_index = (iringbuf_index + 1) % IRINGBUF_SIZE;
   _Log("%s\n\n", logbuf);
@@ -65,17 +65,17 @@ static void exec_once() {
 #endif
 
 #ifdef CONFIG_FTRACE
-  int rd = BITS(inst, 11, 7);
-  int rs1 = BITS(inst, 19, 15);
+  int rd = BITS(cpu.inst, 11, 7);
+  int rs1 = BITS(cpu.inst, 19, 15);
   // jal: ??????? ????? ????? ??? ????? 11011 11
-  if ((inst & 0x0000007f) == 0x0000006f) {
+  if ((cpu.inst & 0x0000007f) == 0x0000006f) {
     // printf("enter judge\n");
-    if (rd != 0) {ftrace_call(prev_pc, pc);}
+    if (rd != 0) {ftrace_call(prev_pc, cpu.pc);}
   }
   // jalr: ??????? ????? ????? 000 ????? 11001 11
-  else if ((inst & 0x0000007f) == 0x00000067 && (inst >> 12 & 0x00000007) == 0) {
-    if(rd == 0 && rs1 == reg[1]) {ftrace_ret(prev_pc, pc);}
-    else {ftrace_call(prev_pc, pc);}
+  else if ((cpu.inst & 0x0000007f) == 0x00000067 && (cpu.inst >> 12 & 0x00000007) == 0) {
+    if(rd == 0 && rs1 == cpu.gpr[1]) {ftrace_ret(prev_pc, cpu.pc);}
+    else {ftrace_call(prev_pc, cpu.pc);}
   }
   else {/* no operation */}
 #endif

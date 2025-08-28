@@ -75,10 +75,10 @@ bit [31:0] rtl_inst [1];
 
 // 在时钟边沿调用函数，确保数据稳定
 always @(posedge clk) begin
-    // if (!rst) begin
+    if (!rst) begin
         rtl_inst[0] = inst;
         sim_get_inst(rtl_inst);
-    // end
+    end
     if (is_ebreak) begin
         sys_exit(exit_state);
     end

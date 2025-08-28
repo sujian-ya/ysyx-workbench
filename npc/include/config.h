@@ -24,7 +24,7 @@
 // #define CONFIG_FTRACE 1
 
 // difftest
-#define CONFIG_DIFFTEST 1
+// #define CONFIG_DIFFTEST 1
 
 // pmem
 #define CONFIG_PC_RESET_OFFSET 0x0

@@ -7,7 +7,7 @@
 void init_rand();
 void init_log(const char *log_file);
 void init_elf(const char *elf_file);
-// void init_mem();
+void init_mem();
 void init_difftest(char *ref_so_file, long img_size, int port);
 // void init_device();
 void init_sdb();
@@ -42,10 +42,6 @@ extern uint32_t *pmem;
 static long load_img() {
   if (img_file == NULL) {
     Log("No image is given. Use the default build-in image.");
-    // pmem[0] = 0x00000297; // NOP (addi x0, x0, 0)
-    // pmem[1] = 0x00028823; // addi x1, x0, 1
-    // pmem[2] = 0x0102c503; // addi x2, x0, 2
-    // pmem[3] = 0x00100073; // EBREAK
     pmem[0] = 0x00000013; // NOP (addi x0, x0, 0)
     pmem[1] = 0x00100093; // addi x1, x0, 1
     pmem[2] = 0x00200113; // addi x2, x0, 2

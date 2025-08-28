@@ -281,8 +281,7 @@ uint32_t eval(int p, int q, bool* success) {
 				const char *reg_name = token->str + 1; // Skip '$'.
 				if (strcmp(reg_name, "pc") == 0) {
 					*success = true;
-					// return (uint32_t)cpu.pc;
-                    return (uint32_t)pc;
+					return (uint32_t)cpu.pc;
 				}
 				else {
 					bool reg_success;
