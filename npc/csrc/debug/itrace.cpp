@@ -13,7 +13,7 @@ void display_iringbuf() {
     int idx = (iringbuf_index + i) % IRINGBUF_SIZE;
     if (iringbuf[idx].logbuf[0] != '\0') {
       if (i == IRINGBUF_SIZE - 1) {
-        printf("%s-->%s %s\n", ANSI_FG_LIGHTPINK, iringbuf[idx].logbuf, ANSI_NONE); // 最后一条指令
+        printf("%s %s\n", ANSI_FMT("-->", ANSI_FG_LIGHTPINK), iringbuf[idx].logbuf); // 最后一条指令
       } else {
         printf("    %s\n", iringbuf[idx].logbuf);
       }

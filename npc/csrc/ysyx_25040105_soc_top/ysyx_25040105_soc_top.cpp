@@ -28,22 +28,18 @@ extern "C" void sys_exit(int exit_state) {
     npc_state.halt_pc = top->pc; // 设置当前PC
 }
 
-extern "C" void sim_get_regs(uint32_t rf[32]) {
-    memcpy(reg, rf, 32 * sizeof( uint32_t));
-    memcpy(cpu.gpr, rf, 32 * sizeof(uint32_t));
+void sim_get_regs() {
+    memcpy(cpu.gpr, top->rf, 32 * sizeof(uint32_t));
+    memcpy(reg, top->rf, 32 * sizeof(uint32_t));
 }
 
-// extern "C" void sim_get_pc(uint32_t* rtl_pc) {
-//     pc = rtl_pc[0];
-// }
+void sim_get_pc() {
+    cpu.pc = (uint32_t)top->pc;
+    pc = (uint32_t)top->pc;
+}
 
 extern "C" void sim_get_inst(uint32_t* rtl_inst) {
     inst = rtl_inst[0];
-}
-
-static void sim_get_pc() {
-    pc = top->pc;
-    cpu.pc = top->pc;
 }
 
 void sim_init() {
@@ -65,8 +61,8 @@ void sim_exit() {
 void single_cycle(Vysyx_25040105_soc_top &dut) {
     dut.clk = 0; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
     dut.clk = 1; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
-    // 更新全局pc变量的值为当前top的pc(第二种获取pc方法)
     sim_get_pc();
+    sim_get_regs();
 }
 
 void reset(int n) {

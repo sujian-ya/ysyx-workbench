@@ -2,6 +2,7 @@
 #include <cpu.h>
 #include <locale.h>
 #include <common.h>
+#include <config.h>
 #include <difftest.h>
 #include <ysyx_25040105_soc_top.h>
 
@@ -23,12 +24,8 @@ static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
 }
 
 static void exec_once() {
-  // 保存当前 PC，因为 single_cycle 可能会改变它
-  // vaddr_t prev_pc = pc;
-  prev_pc = pc;
-
-  // 先初始化指令，然后执行一个周期，最后更新PC
-  top->inst = pmem_read(pc);
+  prev_pc = cpu.pc;
+  top->inst = pmem_read(cpu.pc);
   single_cycle(*top);
 
 #ifdef CONFIG_ITRACE
@@ -63,7 +60,7 @@ static void exec_once() {
   // 5. 打印日志
   strcpy(iringbuf[iringbuf_index].logbuf, logbuf);
   iringbuf_index = (iringbuf_index + 1) % IRINGBUF_SIZE;
-  _Log("%s\n", logbuf);
+  _Log("%s\n\n", logbuf);
 
 #endif
 
@@ -94,7 +91,7 @@ static void execute(uint64_t n) {
   for(; n > 0; n--) {
     exec_once();
     g_nr_guest_inst ++;
-    printf("prev_pc : 0x%08x, cpu.pc = 0x%08x\n", prev_pc, cpu.pc);
+    // printf("prev_pc : 0x%08x, cpu.pc = 0x%08x\n", prev_pc, cpu.pc);
     trace_and_difftest(prev_pc, cpu.pc);
     if(npc_state.state != NPC_RUNNING) break;
   }

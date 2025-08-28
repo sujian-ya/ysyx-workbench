@@ -11,7 +11,7 @@ module ysyx_25040105_RegisterFile # (
     output  [DATA_WIDTH-1:0] rdata2,
     input   [DATA_WIDTH-1:0] wdata,
     input                    wen,
-    output reg [DATA_WIDTH-1:0] rf [2**ADDR_WIDTH-1:0] // 便于查看寄存器波形
+    output reg [DATA_WIDTH-1:0] rf [0:2**ADDR_WIDTH-1] // 便于查看寄存器波形
 );
     // Read logic (combinational)
     assign rdata1 = (raddr1 == 0) ? 32'b0 : rf[raddr1];
@@ -25,11 +25,14 @@ module ysyx_25040105_RegisterFile # (
                 rf[i] <= 32'h0;
             end
         end
-        else begin
-            if (wen) begin
-                rf[waddr] <= (waddr == 0) ? 32'b0 : wdata;
+        begin
+            if (wen && waddr != 0) begin
+                rf[waddr] <= wdata;
+                // rf[waddr] <= (waddr == 0) ? 32'b0 : wdata;
             end
         end
+        // $display("wen = %h, waddr = %h, wdata = %h", wen, waddr, wdata);
+        // $display("rf[0] = %h, rf[1] = %h, rf[2] = %h", rf[0], rf[1], rf[2]);
     end
 
 endmodule

@@ -8,8 +8,6 @@ module ysyx_25040105_soc_top (
 
 // 导入DPI-C函数
 import "DPI-C" function void sys_exit(int exit_state);
-import "DPI-C" function void sim_get_regs(output logic [31:0] rf[0:31]);
-// import "DPI-C" function void sim_get_pc(input bit [31:0] rtl_pc[1]);
 import "DPI-C" function void sim_get_inst(input bit [31:0] rtl_inst[1]);
 
 // IFU
@@ -73,22 +71,14 @@ ysyx_25040105_RegisterFile ysyx_25040105_rf (
 wire is_ebreak = (inst == 32'h00100073);
 wire a0_state  = (rf[10] == 32'h0); // a0寄存器的值
 wire [31:0] exit_state = {31'h0, is_ebreak && a0_state};
-// bit [31:0] rtl_pc [1];
 bit [31:0] rtl_inst [1];
 
-// integer i;
 // 在时钟边沿调用函数，确保数据稳定
 always @(posedge clk) begin
-    // for (i = 0; i < 32; i = i + 1) begin
-    //     $display("Verilog sending reg[%0d]: %h", i, rf[i]);
-    // end
-    if (!rst) begin
-        sim_get_regs(rf);
-        // rtl_pc[0] = pc;  // 将pc的值写入数组
+    // if (!rst) begin
         rtl_inst[0] = inst;
-        // sim_get_pc(rtl_pc);
         sim_get_inst(rtl_inst);
-    end
+    // end
     if (is_ebreak) begin
         sys_exit(exit_state);
     end
