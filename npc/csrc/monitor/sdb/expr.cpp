@@ -327,7 +327,7 @@ uint32_t eval(int p, int q, bool* success) {
 				if (tokens[op].type == TK_DEREF) {
 					*success = true;
 					// return vaddr_read(val, 4);
-                    return pmem_read(val);
+                    return (uint32_t)pmem_read(val);
 				}
 				if (tokens[op].type == TK_SUBTRACT){
 					*success = true;

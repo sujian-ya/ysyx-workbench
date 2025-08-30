@@ -1,7 +1,7 @@
 module ysyx_25040105_soc_top (
     input             clk,
     input             rst,
-    input      [31:0] inst,
+    output     [31:0] inst,
     output     [31:0] pc,
     output reg [31:0] rf [0:31] // 便于查看寄存器波形
 );
@@ -9,6 +9,9 @@ module ysyx_25040105_soc_top (
 // 导入DPI-C函数
 import "DPI-C" function void sys_exit(int exit_state);
 import "DPI-C" function void sim_get_inst(input bit [31:0] rtl_inst[1]);
+import "DPI-C" function int pmem_read(input int raddr);
+import "DPI-C" function void pmem_write(
+    input int waddr, input int wdata, input byte wmask);
 
 // IFU
 wire jump_en; // 跳转使能信号
@@ -18,7 +21,8 @@ ysyx_25040105_IFU ysyx_25040105_ifu (
     .rst(rst),
     .jump_en(jump_en), // 跳转使能信号
     .jump_addr(jump_addr), // 跳转地址
-    .pc(pc)
+    .pc(pc),
+    .inst(inst)
 );
 
 // IDU

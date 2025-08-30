@@ -17,7 +17,7 @@ extern uint32_t *pmem;
 void init_mem();
 
 // 内存读函数
-uint32_t pmem_read(uint32_t addr);
+extern "C" int pmem_read(int addr);
 
 // 打印寄存器
 extern void npc_reg_display();
