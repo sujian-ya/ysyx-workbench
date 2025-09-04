@@ -46,6 +46,7 @@ static long load_img() {
     pmem[1] = 0x00100093; // addi x1, x0, 1
     pmem[2] = 0x00200113; // addi x2, x0, 2
     pmem[3] = 0x00100073; // EBREAK
+    pmem[4] = 0x00000013;
     return 4096; // built-in image size
   }
 
@@ -104,9 +105,6 @@ void init_monitor(int argc, char *argv[]) {
   /* Parse arguments. */
   parse_args(argc, argv);
 
-  /*Init npc corresponding wave and message*/
-  init_npc(argc, argv);
-
   /* Set random seed. */
   init_rand();
 
@@ -136,6 +134,9 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Initialize the ftrace*/
   IFDEF(CONFIG_FTRACE, init_elf(elf_file));
+
+  /*Init npc corresponding wave and message*/
+  init_npc(argc, argv);
 
   /* Display welcome message. */
   welcome();

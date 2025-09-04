@@ -13,25 +13,24 @@ vaddr_t prev_pc = 0x80000000;
 // 仿真相关的全局变量和函数
 extern Vysyx_25040105_soc_top* top;
 extern void single_cycle(Vysyx_25040105_soc_top &dut);
-// extern uint32_t pmem_read(uint32_t addr);
 extern void sim_exit();
 
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 
 static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
+  printf("pc = %08x, dnpc = %08x\n", pc, dnpc);
   IFDEF(CONFIG_DIFFTEST, difftest_step(pc, dnpc));
 }
 
 static void exec_once() {
   prev_pc = cpu.pc;
-  // top->inst = pmem_read(cpu.pc);
   single_cycle(*top);
 
 #ifdef CONFIG_ITRACE
   // 获取指令长度
   int ilen = 4; // RISC-V usually 4 bytes
-  uint32_t inst_code = top->inst;
+  uint32_t inst_code = cpu.inst;
   
   char logbuf[128]; // 本地日志缓冲区
   char *p = logbuf;
