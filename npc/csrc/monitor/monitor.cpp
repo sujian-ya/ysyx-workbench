@@ -123,6 +123,9 @@ void init_monitor(int argc, char *argv[]) {
   /* Load the image to memory. This will overwrite the built-in image. */
   long img_size = load_img();
 
+  /*Init npc corresponding wave and message*/
+  init_npc(argc, argv);
+
   /* Initialize differential testing. */
   init_difftest(diff_so_file, img_size, difftest_port);
 
@@ -134,9 +137,6 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Initialize the ftrace*/
   IFDEF(CONFIG_FTRACE, init_elf(elf_file));
-
-  /*Init npc corresponding wave and message*/
-  init_npc(argc, argv);
 
   /* Display welcome message. */
   welcome();
