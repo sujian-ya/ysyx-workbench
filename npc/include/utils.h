@@ -64,6 +64,19 @@ uint64_t get_time();
 #define ANSI_BG_LILAC_BG      "\33[48;5;224m"  // 丁香紫背景（更浅）
 #define ANSI_BG_PALE_VIOLET_BG "\33[48;5;147m" // 浅紫罗兰背景（稍深）
 
+// 浅黄色系（文本色）
+#define ANSI_FG_PALE_YELLOW    "\33[38;5;229m"  // 极浅黄（接近白色）
+#define ANSI_FG_LIGHT_YELLOW   "\33[38;5;228m"  // 浅黄（柔和）
+#define ANSI_FG_SOFT_YELLOW    "\33[38;5;227m"  // 柔黄（温暖）
+#define ANSI_FG_BUTTER_YELLOW  "\33[38;5;226m"  // 奶油黄（明亮）
+#define ANSI_FG_LEMON_YELLOW   "\33[38;5;220m"  // 柠檬黄（偏绿调）
+#define ANSI_FG_GOLDEN_YELLOW  "\33[38;5;214m"  // 金黄（偏橙调）
+
+// 浅黄色系（背景色）
+#define ANSI_BG_PALE_YELLOW    "\33[48;5;229m"  // 极浅黄背景
+#define ANSI_BG_LIGHT_YELLOW   "\33[48;5;228m"  // 浅黄背景
+#define ANSI_BG_BUTTER_YELLOW  "\33[48;5;226m"  // 奶油黄背景
+
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 
 #define CONFIG_TARGET_NATIVE_ELF 1

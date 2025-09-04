@@ -17,14 +17,19 @@
 // #define CONFIG_WATCHPOINT 1
 
 // disasm.cpp
-#define CONFIG_ITRACE 1
+// #define CONFIG_ITRACE 1
 #define CONFIG_ISA_riscv 1
+
+// mtrace.cpp
+// #define CONFIG_MTRACE 1
+// #define CONFIG_MTRACE_START 0x80000000
+// #define CONFIG_MTRACE_END   0x8fffffff
 
 // ftrace.cpp
 // #define CONFIG_FTRACE 1
 
 // difftest
-#define CONFIG_DIFFTEST 1
+// #define CONFIG_DIFFTEST 1
 
 // pmem
 #define CONFIG_PC_RESET_OFFSET 0x0

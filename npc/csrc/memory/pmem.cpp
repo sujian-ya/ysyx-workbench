@@ -1,6 +1,6 @@
 #include <common.h>
 #include <pmem.h>
-#include <utils.h>
+#include <mtrace.h>
 #include <ysyx_25040105_soc_top.h>
 
 #if   defined(CONFIG_PMEM_MALLOC)
@@ -27,6 +27,7 @@ extern "C" int pmem_read(int addr) {
   assert((aligned_addr & 0x3) == 0);
   uint32_t index = (aligned_addr - CONFIG_MBASE) >> 2;
   assert(index < CONFIG_MSIZE / 4);
+  log_mtrace(false, aligned_addr, 4, pmem[index]);
   return pmem[index];
 }
 
@@ -49,5 +50,6 @@ extern "C" void pmem_write(int waddr, int wdata, char wmask) {
   if (wmask & 0x08) {
       new_data = (new_data & ~0xFF000000) | (wdata & 0xFF000000);
   }
+  log_mtrace(true, aligned_addr, 4, new_data);
   pmem[index] = new_data;
 }

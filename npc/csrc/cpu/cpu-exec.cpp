@@ -19,7 +19,6 @@ uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 
 static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
-  printf("pc = %08x, dnpc = %08x\n", pc, dnpc);
   IFDEF(CONFIG_DIFFTEST, difftest_step(pc, dnpc));
 }
 
@@ -59,7 +58,7 @@ static void exec_once() {
   // 打印日志
   strcpy(iringbuf[iringbuf_index].logbuf, logbuf);
   iringbuf_index = (iringbuf_index + 1) % IRINGBUF_SIZE;
-  _Log("%s\n\n", logbuf);
+  _Log("%s\n", logbuf);
 
 #endif
 
@@ -90,7 +89,6 @@ static void execute(uint64_t n) {
   for(; n > 0; n--) {
     exec_once();
     g_nr_guest_inst ++;
-    // printf("prev_pc : 0x%08x, cpu.pc = 0x%08x\n", prev_pc, cpu.pc);
     trace_and_difftest(prev_pc, cpu.pc);
     if(npc_state.state != NPC_RUNNING) break;
   }
