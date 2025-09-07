@@ -5,8 +5,7 @@ module ysyx_25040105_IDU (
     output [4:0]    rd      ,   // 目的寄存器地址
     output [31:0]   imm     ,   // 生成的立即数
     output          reg_wen ,   // 寄存器写使能信号
-    output [3:0]    alu_op  ,   // ALU操作控制信号
-    output          alu_src ,   // ALU第二操作数来源选择(寄存器/立即数)
+    output [4:0]    alu_op  ,   // ALU操作控制信号
     output          jump_en     // 跳转使能信号
 );
 
@@ -26,18 +25,33 @@ module ysyx_25040105_IDU (
     localparam FUNCT3_ADDI      = 3'b000;
     localparam FUNCT3_ADD       = 3'b000;
     localparam FUNCT3_SUB       = 3'b000;
+    localparam FUNCT3_SLL       = 3'b001;
+    localparam FUNCT3_SRL       = 3'b101;
     localparam FUNCT3_SLLI      = 3'b001;
     localparam FUNCT3_SRLI      = 3'b101;
+    localparam FUNCT3_LW        = 3'b010;
+    localparam FUNCT3_SW        = 3'b010;
+    localparam FUNCT3_SEQZ      = 3'b011;
+    localparam FUNCT3_BEQ       = 3'b000;
+    localparam FUNCT3_BNE       = 3'b001;
 
     // ALU操作定义(与EXU中保持一致)
-    localparam ALU_ADD          = 4'b0000;
-    localparam ALU_SUB          = 4'b0001;
-    localparam ALU_SLL          = 4'b0010;
-    localparam ALU_SRL          = 4'b0011;
-    localparam ALU_AUIPC        = 4'b0100;
-    localparam ALU_LUI          = 4'b0101;
-    localparam ALU_JAL          = 4'b0110;
-    localparam ALU_JALR         = 4'b0111;
+    localparam ALU_ADD          = 5'h0; // ADD
+    localparam ALU_SUB          = 5'h1; // SUB
+    localparam ALU_SLL          = 5'h2; // SLL
+    localparam ALU_SRL          = 5'h3; // SRL
+    localparam ALU_AUIPC        = 5'h4; // AUIPC
+    localparam ALU_LUI          = 5'h5; // LUI
+    localparam ALU_JAL          = 5'h6; // JAL
+    localparam ALU_JALR         = 5'h7; // JALR
+    localparam ALU_LW           = 5'h8; // LW
+    localparam ALU_SW           = 5'h9; // SW
+    localparam ALU_SEQZ         = 5'hA; // SEQZ
+    localparam ALU_BEQ          = 5'hB; // BEQ
+    localparam ALU_BNE          = 5'hC; // BNE
+    localparam ALU_ADDI         = 5'hD; // ADDI
+    localparam ALU_SLLI         = 5'hE; // SLLI
+    localparam ALU_SRLI         = 5'hF; // SRLI
     //TODO: 添加更多ALU操作
 
     // 指令字段提取
@@ -82,39 +96,38 @@ module ysyx_25040105_IDU (
                 imm_reg = 32'b0; // 默认立即数为0
         endcase
     end
-    assign imm = imm_reg;
 
     // ALU控制信号生成
-    reg [3:0] alu_op_reg;       // ALU操作码寄存器
-    reg alu_src_reg;            // ALU源选择寄存器
+    reg [4:0] alu_op_reg;       // ALU操作码寄存器
     reg reg_wen_reg;            // 寄存器写使能寄存器
     // 跳转使能信号和跳转地址初始化
-    assign jump_en = (opcode == OPCODE_JAL || opcode == OPCODE_JALR); 
+    assign jump_en = (opcode == OPCODE_JAL || 
+        opcode == OPCODE_JALR ||
+        opcode == OPCODE_BRANCH
+    ); 
 
     always @(*) begin
         // 默认值
-        alu_op_reg  = 4'h0;
-        alu_src_reg = 1'b0; // 0: rs2, 1: imm
+        alu_op_reg  = 5'h0;
         reg_wen_reg = 1'b0; // 默认不写寄存器
 
         case (opcode)
             // 立即数运算指令(如ADDI、SLLI等)
             OPCODE_OP_IMM: begin
                 reg_wen_reg = 1'b1; // 写目的寄存器
-                alu_src_reg = 1'b1; // 使用立即数作为第二操作数
                 case (funct3)
-                    FUNCT3_ADDI: alu_op_reg = ALU_ADD; // ADDI
-                    FUNCT3_SLLI: alu_op_reg = ALU_SLL; // SLLI
-                    FUNCT3_SRLI: alu_op_reg = ALU_SRL; // SRLI
+                    FUNCT3_ADDI:    alu_op_reg = ALU_ADDI;   // ADDI
+                    FUNCT3_SLLI:    alu_op_reg = ALU_SLLI;   // SLLI
+                    FUNCT3_SRLI:    alu_op_reg = ALU_SRLI;   // SRLI
+                    FUNCT3_SEQZ:    alu_op_reg = ALU_SEQZ;  // SEQZ
                     // TODO:
-                    default: alu_op_reg = 4'hx;
+                    default: alu_op_reg = 5'hx;
                 endcase
             end
 
             // 寄存器运算指令(如ADD、SUB等)
             OPCODE_OP: begin
                 reg_wen_reg = 1'b1; // 写目的寄存器
-                alu_src_reg = 1'b0; // 使用rs2作为第二操作数
                 case (funct3)
                     FUNCT3_ADD: begin
                         if (funct7[5])
@@ -122,41 +135,60 @@ module ysyx_25040105_IDU (
                         else
                             alu_op_reg = ALU_ADD; // ADD
                     end
+                    FUNCT3_SLL:     alu_op_reg = ALU_SLL;   // SLL
+                    FUNCT3_SRL:     alu_op_reg = ALU_SRL;   //
                     // TODO:
-                    default: alu_op_reg = 4'hx;
+                    default: alu_op_reg = 5'hx;
                 endcase
             end
 
             // 跳转指令(如JALR)
             OPCODE_JALR: begin
                 reg_wen_reg = 1'b1; // 写目的寄存器(存储返回地址)
-                alu_src_reg = 1'b1; // 使用立即数作为第二操作数处理PC偏移
                 alu_op_reg = ALU_JALR; // JALR指令的特殊处理
             end
 
             // 跳转指令(如JAL)
             OPCODE_JAL: begin
                 reg_wen_reg = 1'b1; // 写目的寄存器(存储返回地址)
-                alu_src_reg = 1'b1; // 使用立即数作为第二操作数处理PC偏移
                 alu_op_reg = ALU_JAL; // JAL指令的特殊处理
             end
 
             // 加载指令(如LW、LB等)
             OPCODE_LOAD: begin
                 reg_wen_reg = 1'b1; // 写目的寄存器(存储加载的数据)
-                alu_src_reg = 1'b1; // 使用立即数计算地址
-                alu_op_reg = ALU_ADD; // 地址计算(基地址+偏移量)
+                case (funct3)
+                    FUNCT3_LW: alu_op_reg = ALU_LW; // 地址计算(基地址+偏移量)
+                    default: alu_op_reg = 5'hx;
+                endcase
+            end
+
+            // 储存指令（如SW、SB等）
+            OPCODE_STORE: begin
+                reg_wen_reg = 1'b0; // 不写寄存器
+                case (funct3)
+                    FUNCT3_SW: alu_op_reg = ALU_SW; // 地址计算(基地址+偏移量)
+                    default: alu_op_reg = 5'hx;
+                endcase
+            end
+
+            // 分支指令（如BEQ、BNE等）
+            OPCODE_BRANCH: begin
+                reg_wen_reg = 1'b0; // 不写寄存器
+                case (funct3) 
+                    FUNCT3_BEQ: alu_op_reg = ALU_BEQ; // BEQ
+                    FUNCT3_BNE: alu_op_reg = ALU_BNE; // BNE
+                    default: alu_op_reg = 5'hx;
+                endcase
             end
 
             OPCODE_AUIPC: begin
                 reg_wen_reg = 1'b1; // 写目的寄存器(存储PC+立即数)
-                alu_src_reg = 1'b1; // 使用立即数作为第二操作数
                 alu_op_reg = ALU_AUIPC; // AUIPC指令特殊处理
             end
 
             OPCODE_LUI: begin
                 reg_wen_reg = 1'b1; // 写目的寄存器(存储立即数)
-                alu_src_reg = 1'b1; // 使用立即数作为第二操作数
                 alu_op_reg = ALU_LUI; // LUI指令特殊处理
             end
 
@@ -167,8 +199,8 @@ module ysyx_25040105_IDU (
         endcase
     end
 
+    assign imm     = imm_reg;       // 输出立即数
     assign alu_op  = alu_op_reg;    // 输出ALU操作码
-    assign alu_src = alu_src_reg;   // 输出ALU源选择信号
     assign reg_wen = reg_wen_reg;   // 输出寄存器写使能信号
 
 endmodule

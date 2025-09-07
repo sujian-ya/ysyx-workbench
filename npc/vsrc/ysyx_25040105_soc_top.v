@@ -44,8 +44,7 @@ ysyx_25040105_IFU ysyx_25040105_ifu (
 wire [4:0] rs1, rs2, rd;
 wire [31:0] imm;
 wire reg_wen;
-wire [3:0] alu_op;
-wire alu_src;
+wire [4:0] alu_op;
 ysyx_25040105_IDU ysyx_25040105_idu (
     .inst       (inst),
     .rs1        (rs1),
@@ -54,7 +53,6 @@ ysyx_25040105_IDU ysyx_25040105_idu (
     .imm        (imm),
     .reg_wen    (reg_wen),
     .alu_op     (alu_op),
-    .alu_src    (alu_src),
     .jump_en    (jump_en) // 跳转使能信号
 );
 
@@ -66,7 +64,6 @@ ysyx_25040105_EXU ysyx_25040105_exu (
     .rs2_data   (rs2_data),
     .imm        (imm),
     .alu_op     (alu_op),
-    .alu_src    (alu_src),
     .alu_result (alu_result),
     .jump_addr  (jump_addr) // 跳转地址
 );
