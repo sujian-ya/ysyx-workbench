@@ -44,7 +44,7 @@ ysyx_25040105_IFU ysyx_25040105_ifu (
 wire [4:0] rs1, rs2, rd;
 wire [31:0] imm;
 wire reg_wen;
-wire [4:0] alu_op;
+wire [7:0] alu_op;
 ysyx_25040105_IDU ysyx_25040105_idu (
     .inst       (inst),
     .rs1        (rs1),

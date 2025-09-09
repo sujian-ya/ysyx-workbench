@@ -9,7 +9,7 @@
 #define CONFIG_TRACE 1
 #if defined(CONFIG_TRACE)
 // itrace
-#define CONFIG_ITRACE 1
+// #define CONFIG_ITRACE 1
 
 // mtrace
 // #define CONFIG_MTRACE 1
