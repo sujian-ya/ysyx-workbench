@@ -144,6 +144,7 @@ module ysyx_25040105_IDU (
     reg [7:0] alu_op_reg;
     reg reg_wen_reg;
 
+    // ---------------- 跳转使能信号 ----------------
     assign jump_en = (opcode == OPCODE_JAL || 
                       opcode == OPCODE_JALR ||
                       opcode == OPCODE_BRANCH);

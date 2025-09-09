@@ -4,10 +4,10 @@ module ysyx_25040105_EXU(
     input   [31:0]  rs2_data,
     input   [31:0]  imm,
     input   [7:0]   alu_op,
+    output          is_ebreak,
     output  [31:0]  alu_result,
     output  [31:0]  jump_addr
 );
-
     import "DPI-C" function int pmem_read(input int raddr);
     import "DPI-C" function void pmem_write(input int waddr, input int wdata, input byte wmask);
 
@@ -68,6 +68,7 @@ module ysyx_25040105_EXU(
     localparam ALU_EBREAK = 8'h26;
 
     // ---------------- 内部寄存器 ----------------
+    reg        is_ebreak_reg;
     reg [31:0] result_reg;
     reg [31:0] jump_addr_reg;
     reg [31:0] read_addr_reg;
@@ -76,6 +77,7 @@ module ysyx_25040105_EXU(
 
     // ---------------- ALU 运算逻辑 ----------------
     always @(*) begin
+        is_ebreak_reg = 1'h0;
         result_reg    = 32'h0;
         jump_addr_reg = pc + 4;
         read_addr_reg = 32'h0;
@@ -182,15 +184,15 @@ module ysyx_25040105_EXU(
                     end
                     2'b01: begin
                         vmask = 8'b0010;
-                        temp_data = {16'b0, rs2_data[7:0], 8'b0};  // 左移 8 位
+                        temp_data = {16'b0, rs2_data[7:0], 8'b0};  // 左移 1 字节
                     end
                     2'b10: begin
                         vmask = 8'b0100;
-                        temp_data = {8'b0, rs2_data[7:0], 16'b0};  // 左移 16 位
+                        temp_data = {8'b0, rs2_data[7:0], 16'b0};  // 左移 2 字节
                     end
                     2'b11: begin
                         vmask = 8'b1000;
-                        temp_data = {rs2_data[7:0], 24'b0};  // 左移 24 位
+                        temp_data = {rs2_data[7:0], 24'b0};  // 左移 3 字节
                     end
                 endcase
                 pmem_write(read_addr_reg & 32'hfffffffc, temp_data, vmask);  // 用对齐地址
@@ -217,10 +219,8 @@ module ysyx_25040105_EXU(
             end
 
             // 系统
-            ALU_ECALL,
-            ALU_EBREAK: begin
-                result_reg = 32'h0; // 暂时不做处理
-            end
+            // ALU_ECALL,
+            ALU_EBREAK: is_ebreak_reg = 1'h1;
 
             default: result_reg = 32'h0;
         endcase
@@ -228,5 +228,6 @@ module ysyx_25040105_EXU(
 
     assign alu_result = result_reg;
     assign jump_addr  = jump_addr_reg;
+    assign is_ebreak  = is_ebreak_reg;
 
 endmodule
