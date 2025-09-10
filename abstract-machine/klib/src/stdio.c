@@ -5,10 +5,6 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-int printf(const char *fmt, ...) {
-  panic("Not implemented");
-}
-
 int vsprintf(char *out, const char *fmt, va_list ap) {
   char *start = out;  // 记录起始位置
   while (*fmt) {
@@ -71,6 +67,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
   
   *out = '\0';  // 终止字符串
   return out - start;  // 返回写入字符数（不含终止符）
+//   panic("Not implemented");
 }
 
 int sprintf(char *out, const char *fmt, ...) {
@@ -79,6 +76,24 @@ int sprintf(char *out, const char *fmt, ...) {
   int n = vsprintf(out, fmt, ap);
   va_end(ap);
   return n;
+//   panic("Not implemented");
+}
+
+int printf(const char *fmt, ...) {
+  char buf[256]; 
+  va_list ap;
+  
+  va_start(ap, fmt);
+  int len = vsprintf(buf, fmt, ap); // 调用 vsprintf 将结果写入 buf
+  va_end(ap);
+  
+  // 遍历缓冲区，用 putch() 逐个字符打印
+  for (int i = 0; i < len; i++) {
+    putch(buf[i]);
+  }
+  
+  return len;
+//   panic("Not implemented");
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
