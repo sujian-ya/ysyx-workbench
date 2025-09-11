@@ -6,19 +6,30 @@
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
-  char *start = out;  // 记录起始位置
+  char *start = out;
   while (*fmt) {
     if (*fmt != '%') {
-      // 普通字符直接复制
       *out++ = *fmt++;
       continue;
     }
     
-    // 处理格式说明符
-    fmt++;  // 跳过 '%'
+    fmt++; // 跳过 '%'
+    
+    // 1. 处理标志位（flags）和宽度（width）
+    bool zero_pad = false;
+    int width = 0;
+    if (*fmt == '0') {
+      zero_pad = true;
+      fmt++;
+    }
+    while (*fmt >= '0' && *fmt <= '9') {
+      width = width * 10 + (*fmt - '0');
+      fmt++;
+    }
+    
+    // 2. 处理类型说明符（specifier）
     switch (*fmt) {
       case 's': {
-        // 字符串参数
         const char *s = va_arg(ap, const char *);
         while (*s) {
           *out++ = *s++;
@@ -28,22 +39,31 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       }
       
       case 'd': {
-        // 整数参数
         int num = va_arg(ap, int);
         if (num < 0) {
           *out++ = '-';
-          num = -num;  // 转换为正数处理
+          num = -num;
         }
         
-        // 将整数转换为字符串（反向存储）
         char buffer[16];
         int idx = 0;
-        do {
-          buffer[idx++] = '0' + (num % 10);
-          num /= 10;
-        } while (num > 0);
+        if (num == 0) {
+            buffer[idx++] = '0';
+        } else {
+            do {
+                buffer[idx++] = '0' + (num % 10);
+                num /= 10;
+            } while (num > 0);
+        }
         
-        // 反向复制到输出
+        // 应用零填充和宽度
+        int pad_count = width - idx;
+        if (zero_pad && pad_count > 0) {
+          for (int i = 0; i < pad_count; i++) {
+            *out++ = '0';
+          }
+        }
+        
         while (idx > 0) {
           *out++ = buffer[--idx];
         }
@@ -52,22 +72,36 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       }
       
       case '%':
-        // 转义百分号
         *out++ = '%';
         fmt++;
         break;
       
       default:
-        // 不支持格式：原样输出'%'和字符
+        // 不支持的格式：原样输出
         *out++ = '%';
+        if (width > 0) {
+          // 如果有宽度，也打印出来
+          int i = 0;
+          char temp_width_buf[4];
+          if (width == 0) {
+            temp_width_buf[i++] = '0';
+          } else {
+            int temp_w = width;
+            while(temp_w > 0) {
+              temp_width_buf[i++] = (temp_w % 10) + '0';
+              temp_w /= 10;
+            }
+          }
+          while(i > 0) {
+            *out++ = temp_width_buf[--i];
+          }
+        }
         *out++ = *fmt++;
         break;
     }
   }
-  
-  *out = '\0';  // 终止字符串
-  return out - start;  // 返回写入字符数（不含终止符）
-//   panic("Not implemented");
+  *out = '\0';
+  return out - start;
 }
 
 int sprintf(char *out, const char *fmt, ...) {
