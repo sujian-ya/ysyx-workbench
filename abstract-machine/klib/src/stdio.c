@@ -36,6 +36,26 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
     
     // 处理类型说明符（specifier）
     switch (*fmt) {
+      case 'c': {
+        // 处理字符类型
+        char c = (char)va_arg(ap, int); // 使用int接收是因为char会被提升
+        
+        // 处理宽度（如果指定了宽度且大于1，需要填充）
+        int pad_count = width - 1;
+        if (pad_count > 0) {
+          // 根据填充方式决定填充字符
+          char pad_char = zero_pad ? '0' : ' ';
+          for (int i = 0; i < pad_count; i++) {
+            *out++ = pad_char;
+          }
+        }
+        
+        // 输出字符
+        *out++ = c;
+        fmt++;
+        break;
+      }
+      
       case 's': {
         const char *s = va_arg(ap, const char *);
         while (*s) {
@@ -238,4 +258,3 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
 }
 
 #endif
-    
