@@ -54,6 +54,9 @@ uint64_t get_time();
 #define ANSI_BG_WHITE   "\33[1;47m"
 #define ANSI_NONE       "\33[0m"
 
+#define ANSI_FG_APRICOT        "\33[38;5;223m"  // 杏色（编号223）
+#define ANSI_FG_LAVENDER       "\33[38;5;183m"  // 淡薰衣草紫（柔和）
+
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 
 #define log_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \

@@ -178,6 +178,12 @@ config MTRACE_END
   depends on MTRACE
   hex "End address of memory trace range" 
   default 0x87ffffff
+
+# 添加dtrace配置
+config DTRACE
+  depends on TRACE && !TARGET_AM
+  bool "Enable device tracer" 
+  default n
 ############
 
 ############
