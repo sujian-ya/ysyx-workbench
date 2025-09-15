@@ -15,7 +15,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
     
     fmt++; // 跳过 '%'
     
-    // 1. 处理标志位（flags）和宽度（width）
+    // 处理标志位（flags）和宽度（width）
     bool zero_pad = false;
     int width = 0;
     if (*fmt == '0') {
@@ -27,7 +27,14 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       fmt++;
     }
     
-    // 2. 处理类型说明符（specifier）
+    // 检查是否有长度修饰符（如z for size_t）
+    bool is_size_t = false;
+    if (*fmt == 'z') {
+      is_size_t = true;
+      fmt++; // 跳过 'z'
+    }
+    
+    // 处理类型说明符（specifier）
     switch (*fmt) {
       case 's': {
         const char *s = va_arg(ap, const char *);
@@ -70,6 +77,97 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
         fmt++;
         break;
       }
+
+      case 'u': {
+        // 处理无符号整数，支持%u和%zu
+        uint64_t num;
+        if (is_size_t) {
+          num = (uint64_t)va_arg(ap, size_t); // 对于size_t类型
+        } else {
+          num = (uint64_t)va_arg(ap, unsigned int); // 普通无符号int
+        }
+        
+        char buffer[20]; // 足够容纳64位无符号整数的十进制表示
+        int idx = 0;
+        
+        if (num == 0) {
+            buffer[idx++] = '0';
+        } else {
+            do {
+                buffer[idx++] = '0' + (num % 10);
+                num /= 10;
+            } while (num > 0);
+        }
+        
+        // 应用零填充和宽度
+        int pad_count = width - idx;
+        if (zero_pad && pad_count > 0) {
+          for (int i = 0; i < pad_count; i++) {
+            *out++ = '0';
+          }
+        }
+        
+        // 反转输出
+        while (idx > 0) {
+          *out++ = buffer[--idx];
+        }
+        fmt++;
+        break;
+      }
+
+      case 'p': {
+        // 处理指针地址，通常以十六进制显示并添加0x前缀
+        uintptr_t ptr = (uintptr_t)va_arg(ap, void *);
+        
+        // 指针地址至少要显示8位（32位系统）
+        int min_digits = sizeof(void*) * 2; // 每个字节2个十六进制数字
+        int pad_count = (width > min_digits) ? (width - min_digits) : 0;
+        
+        // 输出0x前缀
+        *out++ = '0';
+        *out++ = 'x';
+        
+        // 处理零填充
+        if (zero_pad && pad_count > 0) {
+          for (int i = 0; i < pad_count; i++) {
+            *out++ = '0';
+          }
+        }
+        
+        // 转换为十六进制
+        char buffer[16];
+        int idx = 0;
+        uintptr_t temp = ptr;
+        
+        // 计算需要的位数
+        int digits = 0;
+        if (temp == 0) digits = 1;
+        else while (temp > 0) { temp >>= 4; digits++; }
+        
+        // 确保至少有min_digits位
+        for (int i = digits; i < min_digits; i++) {
+          buffer[idx++] = '0';
+        }
+        
+        // 转换数字
+        if (ptr == 0) {
+          buffer[idx++] = '0';
+        } else {
+          while (ptr > 0) {
+            uint8_t nibble = ptr & 0x0F;
+            buffer[idx++] = (nibble < 10) ? ('0' + nibble) : ('a' + nibble - 10);
+            ptr >>= 4;
+          }
+        }
+        
+        // 反转输出（因为我们是从低位开始存储的）
+        while (idx > 0) {
+          *out++ = buffer[--idx];
+        }
+        
+        fmt++;
+        break;
+      }
       
       case '%':
         *out++ = '%';
@@ -96,6 +194,9 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
             *out++ = temp_width_buf[--i];
           }
         }
+        if (is_size_t) {
+          *out++ = 'z'; // 输出之前解析的z修饰符
+        }
         *out++ = *fmt++;
         break;
     }
@@ -110,7 +211,6 @@ int sprintf(char *out, const char *fmt, ...) {
   int n = vsprintf(out, fmt, ap);
   va_end(ap);
   return n;
-//   panic("Not implemented");
 }
 
 int printf(const char *fmt, ...) {
@@ -127,7 +227,6 @@ int printf(const char *fmt, ...) {
   }
   
   return len;
-//   panic("Not implemented");
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
@@ -139,3 +238,4 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
 }
 
 #endif
+    

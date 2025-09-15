@@ -34,7 +34,28 @@ void *malloc(size_t size) {
   // Therefore do not call panic() here, else it will yield a dead recursion:
   //   panic() -> putchar() -> (glibc) -> malloc() -> panic()
 #if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
-  panic("Not implemented");
+  static char *current = NULL;
+  static bool initialized = false;
+
+  // 初始化堆区起始地址，并对齐到 8 字节
+  if (!initialized) {
+    current = (char *)ROUNDUP((uintptr_t)heap.start, 8);
+    initialized = true;
+  }
+
+  // 对请求的内存大小进行 8 字节对齐
+  size = (size + 7) & ~7;
+
+  // 检查是否超出堆区范围
+  if (current + size > (char *)heap.end) {
+    printf("malloc failed: requested size = %zu, current = %p, heap.end = %p\n", size, current, heap.end);
+    return NULL;
+  }
+
+  // 分配内存并更新指针
+  void *ret = current;
+  current += size;
+  return ret;
 #endif
   return NULL;
 }
