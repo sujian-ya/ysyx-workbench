@@ -4,24 +4,19 @@
 #define SYNC_ADDR (VGACTL_ADDR + 4)
 
 void __am_gpu_init() {
-  uint32_t vga_ctl = inl(VGACTL_ADDR);
-  // 宽度和高度分别存储在高16位和低16位
-  int w = (vga_ctl >> 16) & 0xffff;
-  int h = vga_ctl & 0xffff;
-  // 定义一个指向显存起始地址的指针，并将其初始化为FB_ADDR
-  uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
-  for (int i = 0; i < w * h; i++) {
-    fb[i] = i;
-  }
-  outl(SYNC_ADDR, 1);
+  // uint32_t vga_ctl = inl(VGACTL_ADDR);
+  // // 宽度和高度分别存储在高16位和低16位
+  // int w = (vga_ctl >> 16) & 0xffff;
+  // int h = vga_ctl & 0xffff;
+  // // 定义一个指向显存起始地址的指针，并将其初始化为FB_ADDR
+  // uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
+  // for (int i = 0; i < w * h; i++) {
+  //   fb[i] = i;
+  // }
+  // outl(SYNC_ADDR, 1);
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
-  // *cfg = (AM_GPU_CONFIG_T) {
-  //   .present = true, .has_accel = false,
-  //   .width = 0, .height = 0,
-  //   .vmemsz = 0
-  // };
   // 再次从VGA控制寄存器读取屏幕宽度和高度，以及计算显存大小
   uint32_t vga_ctl = inl(VGACTL_ADDR);
   int w = (vga_ctl >> 16) & 0xffff;
