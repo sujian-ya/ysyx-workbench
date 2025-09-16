@@ -24,9 +24,7 @@ void create_watchpoint(char* args);
 void delete_watchpoint(int no);
 void sdb_watchpoint_display();
 
-#ifdef CONFIG_WATCHPOINT
-void check_watchpoint(void);
-#endif
+void check_watchpoint();
 
 #endif
 

@@ -144,8 +144,8 @@ void sdb_watchpoint_display() {
 	}
 }
 
+void check_watchpoint() {
 #ifdef CONFIG_WATCHPOINT
-void check_watchpoint(void) {
 	if (nemu_state.state == NEMU_END) {
 		return;
 	}
@@ -175,5 +175,5 @@ void check_watchpoint(void) {
 		printf("0x%-10x (no watchpoint)\n", cpu.pc);
 	}
 	return;
-}
 #endif
+}

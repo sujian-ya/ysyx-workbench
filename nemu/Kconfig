@@ -131,6 +131,7 @@ config TRACE
   default y
 
 config WATCHPOINT
+  depends on !TARGET_AM
 	bool "Enable watchpoint support"
 	default y
 	help 
