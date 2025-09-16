@@ -27,7 +27,20 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       fmt++;
     }
     
-    // 检查是否有长度修饰符（如z for size_t）
+    // 检查长度修饰符（l 或 ll）
+    bool is_long = false;
+    bool is_long_long = false;
+    if (*fmt == 'l') {
+      fmt++;
+      if (*fmt == 'l') { // 处理 %llu
+        is_long_long = true;
+        fmt++;
+      } else { // 处理 %lu
+        is_long = true;
+      }
+    }
+    
+    // 检查是否有其他长度修饰符（如z for size_t）
     bool is_size_t = false;
     if (*fmt == 'z') {
       is_size_t = true;
@@ -43,7 +56,6 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
         // 处理宽度（如果指定了宽度且大于1，需要填充）
         int pad_count = width - 1;
         if (pad_count > 0) {
-          // 根据填充方式决定填充字符
           char pad_char = zero_pad ? '0' : ' ';
           for (int i = 0; i < pad_count; i++) {
             *out++ = pad_char;
@@ -99,12 +111,16 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       }
 
       case 'u': {
-        // 处理无符号整数，支持%u和%zu
         uint64_t num;
-        if (is_size_t) {
-          num = (uint64_t)va_arg(ap, size_t); // 对于size_t类型
+        // 根据长度修饰符选择数据类型
+        if (is_long_long) {
+          num = (uint64_t)va_arg(ap, unsigned long long);
+        } else if (is_long) {
+          num = (uint64_t)va_arg(ap, unsigned long);
+        } else if (is_size_t) {
+          num = (uint64_t)va_arg(ap, size_t);
         } else {
-          num = (uint64_t)va_arg(ap, unsigned int); // 普通无符号int
+          num = (uint64_t)va_arg(ap, unsigned int);
         }
         
         char buffer[20]; // 足够容纳64位无符号整数的十进制表示
@@ -128,6 +144,48 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
         }
         
         // 反转输出
+        while (idx > 0) {
+          *out++ = buffer[--idx];
+        }
+        fmt++;
+        break;
+      }
+
+      case 'x': {
+        uint64_t num;
+        // 根据长度修饰符选择数据类型
+        if (is_long_long) {
+          num = (uint64_t)va_arg(ap, unsigned long long);
+        } else if (is_long) {
+          num = (uint64_t)va_arg(ap, unsigned long);
+        } else if (is_size_t) {
+          num = (uint64_t)va_arg(ap, size_t);
+        } else {
+          num = (uint64_t)va_arg(ap, unsigned int);
+        }
+        
+        char buffer[20]; // 足够容纳64位无符号整数的十六进制表示
+        int idx = 0;
+        
+        if (num == 0) {
+            buffer[idx++] = '0';
+        } else {
+            do {
+                uint8_t nibble = num & 0x0F;
+                buffer[idx++] = (nibble < 10) ? ('0' + nibble) : ('a' + nibble - 10);
+                num >>= 4;
+            } while (num > 0);
+        }
+        
+        // 应用零填充和宽度
+        int pad_count = width - idx;
+        if (zero_pad && pad_count > 0) {
+          for (int i = 0; i < pad_count; i++) {
+            *out++ = '0';
+          }
+        }
+        
+        // 反转输出（因为我们是从低位开始存储的）
         while (idx > 0) {
           *out++ = buffer[--idx];
         }
@@ -198,7 +256,6 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
         // 不支持的格式：原样输出
         *out++ = '%';
         if (width > 0) {
-          // 如果有宽度，也打印出来
           int i = 0;
           char temp_width_buf[4];
           if (width == 0) {
