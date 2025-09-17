@@ -23,16 +23,27 @@ const char *regs[] = {
   "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
   "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
   "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
-  "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
+  "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6",
+  "mepc", "mstatus", "mcause", "mtvec"
 };
 
 void isa_reg_display() {
 	printf("Displaying reg:\n");
-	printf("%-12s %-12s %-12s %-12s\n","PC", "reg_name", "int32_t", "uint32_t");
-	for (int i = 0; i < REG_NUM; i++) {
+	printf("pc = 0x%-10x\n", (uint32_t)cpu.pc);
+	printf(" %-8s %-12s\n", "REG_NAME", "VALUE");
+	int cnt = 1;
+	for (int i = 0; i < REG_NUM; i++, cnt++) {
 		word_t val = gpr(check_reg_idx(i));
-		printf("0x%-10x %-12s %-12d 0x%-10x\n", cpu.pc, regs[i], (int32_t)val, (uint32_t)val);
+		if (cnt % 4 == 0) {
+			printf("|%-8s 0x%-8.8x\n", regs[i], (uint32_t)val);
+		} else {
+			printf("|%-8s 0x%-8.8x  ", regs[i], (uint32_t)val);
+		}
 	}
+	printf("|%-8s 0x%-8.8x  ", "mepc", (uint32_t)cpu.mepc);
+	printf("|%-8s 0x%-8.8x  ", "mstatus", (uint32_t)cpu.mstatus);
+	printf("|%-8s 0x%-8.8x  ", "mcause", (uint32_t)cpu.mcause);
+	printf("|%-8s 0x%-8.8x\n", "mtvec", (uint32_t)cpu.mtvec);
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
