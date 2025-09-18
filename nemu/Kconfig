@@ -157,7 +157,6 @@ config ITRACE_COND
   string "Only trace instructions when the condition is true"
   default "true"
 
-############
 # 添加mtrace配置
 config MTRACE
   depends on TRACE && !TARGET_AM
@@ -185,9 +184,13 @@ config DTRACE
   depends on TRACE && !TARGET_AM
   bool "Enable device tracer" 
   default n
-############
 
-############
+# 添加etrace配置
+config ETRACE
+  depends on TRACE && !TARGET_AM
+  bool "Enable exception tracer"
+  default n
+
 # 添加ftrace配置
 config FTRACE 
   depends on TRACE && !TARGET_AM
