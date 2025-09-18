@@ -14,7 +14,7 @@ LDFLAGS   += --defsym=_pmem_start=0x80000000 --defsym=_entry_offset=0x0
 LDFLAGS   += --gc-sections -e _start
 NEMUFLAGS += -l $(shell dirname $(IMAGE).elf)/nemu-log.txt
 # 批处理模式
-# NEMUFLAGS += -b
+NEMUFLAGS += -b
 # 默认加载 ELF 文件，可通过 USER_ARGS 覆盖
 NEMUFLAGS += $(if $(USER_ELF),--elf=$(USER_ELF),--elf=$(IMAGE).elf)
 

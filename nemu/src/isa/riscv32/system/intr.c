@@ -21,12 +21,20 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
    */
   cpu.mepc = epc;
   cpu.mcause = NO;
-  // cpu.mstatus = (cpu.mstatus & 0xFFFFFFFCL) | ((cpu.mstatus & 0x8) >> 3) | 0x8;
+  // mstatus 处理逻辑
+  word_t old_mstatus = cpu.mstatus;
+  cpu.mstatus &= ~(1 << 3);
+  cpu.mstatus |= ((old_mstatus >> 3) & 1) << 7;
+  cpu.mstatus |= 3 << 11;
   return cpu.mtvec;
 }
 
 word_t isa_ret_intr() {
-  cpu.mstatus = (cpu.mstatus & 0xFFFFFFFCL) | ((cpu.mstatus & 0x2) << 3) | 0x2;
+  word_t old_mstatus = cpu.mstatus;
+  // 恢复MIE
+  cpu.mstatus |= ((old_mstatus >> 7) & 1) << 3;
+  // 清零MPIE
+  cpu.mstatus &= ~(1 << 7);
   return cpu.mepc;
 }
 
