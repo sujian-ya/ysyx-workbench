@@ -40,32 +40,39 @@ f(30) f(31)
 .align 3
 .globl __am_asm_trap
 __am_asm_trap:
+  # 保存通用寄存器
   addi sp, sp, -CONTEXT_SIZE
-
   MAP(REGS, PUSH)
 
+  # 保存 mcause, mstatus, mepc
   csrr t0, mcause
   csrr t1, mstatus
   csrr t2, mepc
-
   STORE t0, OFFSET_CAUSE(sp)
   STORE t1, OFFSET_STATUS(sp)
   STORE t2, OFFSET_EPC(sp)
 
-  # set mstatus.MPRV to pass difftest
+  # 设置 mstatus.MPRV 以通过 difftest
   li a0, (1 << 17)
   or t1, t1, a0
   csrw mstatus, t1
 
+  # 调用中断处理函数
   mv a0, sp
   call __am_irq_handle
 
+  # 获取 __am_irq_handle 的返回值
+  mv sp, a0
+
+  # 从新的栈顶（新上下文）恢复 mcause, mstatus, mepc
   LOAD t1, OFFSET_STATUS(sp)
   LOAD t2, OFFSET_EPC(sp)
   csrw mstatus, t1
   csrw mepc, t2
 
+  # 从新的栈顶（新上下文）恢复通用寄存器
   MAP(REGS, POP)
 
+  # 调整栈指针并返回
   addi sp, sp, CONTEXT_SIZE
   mret

@@ -146,34 +146,56 @@ void sdb_watchpoint_display() {
 
 void check_watchpoint() {
 #ifdef CONFIG_WATCHPOINT
-	if (nemu_state.state == NEMU_END) {
-		return;
-	}
-	int cnt = 0;
-	printf("\nChecking watchpoint:\n");
-	printf("%-12s %-12s %-12s %-12s\n","PC","Watchpoint","Old_value","New_value");
-	for (WP *wp = head; wp; wp = wp->next, cnt++) {
-		bool success = true;
-		word_t cur_value = expr(wp->expr, &success);
+    if (nemu_state.state == NEMU_END) {
+        return;
+    }
 
-		if (!success) {
-			printf("Watchpoint %02d expression invalid: %s\n", wp->NO, wp->expr);
-			continue;
-		}
+    int total_cnt = 0;                // 总监视点数量
+    int changed_cnt = 0;              // 发生变化的监视点数量
+    WP* changed_wps[NR_WP];              // 存储发生变化的监视点（可根据需要调整大小）
+    word_t old_values[NR_WP], new_values[NR_WP];  // 存储对应的值变化
 
-		if (cur_value != wp->value) {
-			nemu_state.state = NEMU_STOP;
-			printf("0x%-10x %-12d 0x%-10x 0x%-10x\n",
-					cpu.pc, wp->NO, (uint32_t)wp->value, (uint32_t)cur_value);
-			wp->value = cur_value;
-		} else {
-			printf("0x%-10x %-12d (no change)\n", cpu.pc, wp->NO);
-			nemu_state.state = NEMU_RUNNING;
-		}
-	}
-	if (!cnt) {
-		printf("0x%-10x (no watchpoint)\n", cpu.pc);
-	}
-	return;
+    // 第一次遍历：收集所有发生变化的监视点
+    for (WP *wp = head; wp; wp = wp->next, total_cnt++) {
+        bool success = true;
+        word_t cur_value = expr(wp->expr, &success);
+
+        if (!success) {
+            continue;  // 跳过表达式无效的监视点
+        }
+
+        if (cur_value != wp->value) {
+            // 记录变化的监视点信息
+            if (changed_cnt < NR_WP) {  // 防止数组越界
+                changed_wps[changed_cnt] = wp;
+                old_values[changed_cnt] = wp->value;
+                new_values[changed_cnt] = cur_value;
+                changed_cnt++;
+            }
+        }
+    }
+
+    // 只有当有监视点发生变化时才输出信息
+    if (changed_cnt > 0) {
+        printf("\nChecking watchpoint:\n");
+        printf("%-12s %-12s %-12s %-12s\n", "PC", "Watchpoint", "Old_value", "New_value");
+        
+        // 输出所有变化的监视点信息
+        nemu_state.state = NEMU_STOP;
+        for (int i = 0; i < changed_cnt; i++) {
+            WP* wp = changed_wps[i];
+            printf("0x%-10x %-12d 0x%-10x 0x%-10x\n",
+                    cpu.pc, wp->NO, 
+                    (uint32_t)old_values[i], 
+                    (uint32_t)new_values[i]);
+            wp->value = new_values[i];  // 更新监视点的值
+        }
+    } else {
+        // 没有变化时保持运行状态，不输出任何信息
+        nemu_state.state = NEMU_RUNNING;
+    }
+
+    return;
 #endif
 }
+
