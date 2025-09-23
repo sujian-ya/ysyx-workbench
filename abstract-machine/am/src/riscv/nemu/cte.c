@@ -38,9 +38,6 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   // 从栈的底部开始创建上下文
   Context *ctx = (Context *)(kstack.end - sizeof(Context));
   
-  // 清零上下文结构
-  memset(ctx, 0, sizeof(Context));
-
   // 初始化上下文寄存器
   memset(ctx, 0, sizeof(Context));
   ctx->mepc = (uintptr_t)entry;
@@ -48,7 +45,6 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   ctx->gpr[10] = (uintptr_t)arg; // a0寄存器传递参数
 
   return ctx;
-
 }
 
 void yield() {
