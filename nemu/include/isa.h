@@ -55,5 +55,7 @@ word_t isa_query_intr();
 // difftest
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);
 void isa_difftest_attach();
+// difftest 打印寄存器
+void diff_reg_display(CPU_state *ref_r);
 
 #endif
