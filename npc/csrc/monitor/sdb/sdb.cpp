@@ -1,7 +1,7 @@
 #include <sdb.h>
 #include <cpu.h>
 #include <utils.h>
-#include <pmem.h>
+#include <memory/paddr.h>
 #include <common.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -10,7 +10,7 @@
 static int is_batch_mode = false;
 
 void init_regex();
-// void init_wp_pool();
+void init_wp_pool();
 
 extern void cpu_exec(uint64_t n);
 extern void sim_exit();
@@ -103,7 +103,7 @@ static int cmd_x(char* args){
 	printf("%-14s %-14s %-14s\n", "address", "uint32_t", "int32_t");
 	for (int i = 0; i < num; i++) {
 		uint32_t mem = expr_num + 4 * i;
-		paddr_t value = pmem_read(mem);
+		paddr_t value = paddr_read(mem, 4);
 		printf("| 0x%-10x | 0x%-10x | %-12d\n", mem, (uint32_t)value, (int32_t)value);
 	}
 	return 0;

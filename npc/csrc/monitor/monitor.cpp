@@ -1,5 +1,5 @@
 #include <common.h>
-#include <pmem.h>
+#include <memory/paddr.h>
 #include <init.h>
 #include <sdb.h>
 #include <config.h>
@@ -9,7 +9,7 @@ void init_log(const char *log_file);
 void init_elf(const char *elf_file);
 void init_mem();
 void init_difftest(char *ref_so_file, long img_size, int port);
-// void init_device();
+void init_device();
 void init_sdb();
 void init_disasm();
 
@@ -38,16 +38,20 @@ static char *diff_so_file = NULL;
 static char *img_file = NULL;
 static int difftest_port = 1234;
 
-extern uint32_t *pmem;
+word_t default_img[] = {
+  0x00000013,
+  0x00100093,
+  0x00200113,
+  0x00100073,
+  0x00000013,
+};
+
 static long load_img() {
   if (img_file == NULL) {
     Log("No image is given. Use the default build-in image.");
-    pmem[0] = 0x00000013; // NOP (addi x0, x0, 0)
-    pmem[1] = 0x00100093; // addi x1, x0, 1
-    pmem[2] = 0x00200113; // addi x2, x0, 2
-    pmem[3] = 0x00100073; // EBREAK
-    pmem[4] = 0x00000013;
-    return 4096; // built-in image size
+    long size = sizeof(default_img);
+    memcpy(guest_to_host(RESET_VECTOR), default_img, size);
+    return size; // 返回默认镜像的字节大小
   }
 
   FILE *fp = fopen(img_file, "rb");
@@ -59,7 +63,7 @@ static long load_img() {
   Log("The image is %s, size = %ld", img_file, size);
 
   fseek(fp, 0, SEEK_SET);
-  int ret = fread(pmem, size, 1, fp);
+  int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
   assert(ret == 1);
 
   fclose(fp);
@@ -115,7 +119,7 @@ void init_monitor(int argc, char *argv[]) {
   init_mem();
 
   /* Initialize devices. */
-  // IFDEF(CONFIG_DEVICE, init_device());
+  IFDEF(CONFIG_DEVICE, init_device());
 
   /* Perform ISA dependent initialization. */
   // init_isa();

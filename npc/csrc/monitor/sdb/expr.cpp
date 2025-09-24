@@ -8,7 +8,8 @@
 #include <stdint.h>
 #include <errno.h>
 #include <common.h>
-#include <pmem.h>
+#include <memory/paddr.h>
+#include <memory/reg.h>
 #include <cpu.h>
 #include <sdb.h>
 
@@ -327,7 +328,7 @@ uint32_t eval(int p, int q, bool* success) {
 				if (tokens[op].type == TK_DEREF) {
 					*success = true;
 					// return vaddr_read(val, 4);
-                    return (uint32_t)pmem_read(val);
+                    return (uint32_t)paddr_read(val, 4);
 				}
 				if (tokens[op].type == TK_SUBTRACT){
 					*success = true;

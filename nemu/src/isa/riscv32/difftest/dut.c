@@ -39,7 +39,6 @@ void isa_difftest_attach() {
 }
 
 #define REG_NUM 32
-
 void diff_reg_display(CPU_state *ref_r) {
 	printf("Displaying reg(diff):\n");
 	printf("pc = 0x%-10x\n", (uint32_t)ref_r->pc);

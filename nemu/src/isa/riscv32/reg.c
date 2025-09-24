@@ -30,7 +30,6 @@ const char *regs[] = {
 void isa_reg_display() {
 	printf("Displaying reg(nemu):\n");
 	printf("pc = 0x%-10x\n", (uint32_t)cpu.pc);
-	// printf("%-8s %-12s\n", "REG_NAME", "VALUE");
 	int cnt = 1;
 	for (int i = 0; i < REG_NUM; i++, cnt++) {
 		word_t val = gpr(check_reg_idx(i));

@@ -8,6 +8,10 @@ AM_SRCS := riscv/npc/start.S \
            platform/dummy/vme.c \
            platform/dummy/mpe.c
 
+# Add include paths for RISC-V and NPC-specific headers
+INC_PATH += $(AM_HOME)/am/src/riscv/npc/include
+INC_PATH += $(AM_HOME)/am/src/riscv
+
 CFLAGS    += -fdata-sections -ffunction-sections
 LDSCRIPTS += $(AM_HOME)/scripts/linker.ld
 LDFLAGS   += --defsym=_pmem_start=0x80000000 --defsym=_entry_offset=0x0

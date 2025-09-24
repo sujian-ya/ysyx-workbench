@@ -18,8 +18,13 @@ extern void sim_exit();
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 
+void device_update();
+
 static void trace_and_difftest(vaddr_t pc, vaddr_t dnpc) {
   IFDEF(CONFIG_DIFFTEST, difftest_step(pc, dnpc));
+#ifdef CONFIG_WATCHPOINT
+  check_watchpoint();
+#endif
 }
 
 static void exec_once() {
@@ -77,11 +82,6 @@ static void exec_once() {
   }
   else {/* no operation */}
 #endif
-
-#ifdef CONFIG_WATCHPOINT
-  check_watchpoint();
-#endif
-
 }
 
 // NPC执行函数
@@ -91,6 +91,7 @@ static void execute(uint64_t n) {
     g_nr_guest_inst ++;
     trace_and_difftest(prev_pc, cpu.pc);
     if(npc_state.state != NPC_RUNNING) break;
+    IFDEF(CONFIG_DEVICE, device_update());
   }
 }
 

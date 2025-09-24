@@ -10,7 +10,7 @@ void init_npc(int argc, char *argv[]) {
   sim_init();
   contextp->commandArgs(argc, argv);
   reset(5);
-  for (int i = 0; i < argc; i++) {
-    Log("NPC-init argc[%d]: %s", i, argv[i]);
-  }
+  // for (int i = 0; i < argc; i++) {
+  //   Log("NPC-init argc[%d]: %s", i, argv[i]);
+  // }
 }

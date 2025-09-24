@@ -6,10 +6,16 @@ module ysyx_25040105_EXU(
     input   [7:0]   alu_op,
     output          is_ebreak,
     output  [31:0]  alu_result,
-    output  [31:0]  jump_addr
+    output  [31:0]  jump_addr,
+    output  [31:0]  mem_addr,
+    output  [31:0]   mem_len,
+    output  [31:0]  mem_data
 );
-    import "DPI-C" function int pmem_read(input int raddr);
-    import "DPI-C" function void pmem_write(input int waddr, input int wdata, input byte wmask);
+    // ---------------- DPI-C 函数声明 ----------------
+    // 从虚拟地址读取指定长度的数据
+    import "DPI-C" function int vaddr_read(input int raddr, input int len);
+    // 向虚拟地址写入指定长度和数据
+    import "DPI-C" function void vaddr_write(input int addr, input int len, input int data);
 
     // ---------------- ALU op 定义 ----------------
     // 算术逻辑
@@ -71,18 +77,19 @@ module ysyx_25040105_EXU(
     reg        is_ebreak_reg;
     reg [31:0] result_reg;
     reg [31:0] jump_addr_reg;
-    reg [31:0] read_addr_reg;
-    reg [31:0] temp_data;
-    reg [7:0]  vmask;
-
+    reg [31:0]  mem_addr_reg;
+    reg [31:0]   mem_len_reg;
+    reg [31:0]  mem_data_reg;
+    
     // ---------------- ALU 运算逻辑 ----------------
     always @(*) begin
         is_ebreak_reg = 1'h0;
         result_reg    = 32'h0;
         jump_addr_reg = pc + 4;
-        read_addr_reg = 32'h0;
-        temp_data     = 32'h0;
-        vmask         = 8'h0;
+        mem_addr_reg  = 32'h8000_0000;
+        mem_len_reg   = 32'h1;
+        mem_data_reg  = 32'h0;
+        
 
         case (alu_op)
             // 算术逻辑
@@ -132,94 +139,32 @@ module ysyx_25040105_EXU(
             ALU_BLTU:  if (rs1_data < rs2_data) jump_addr_reg = pc + imm;
             ALU_BGEU:  if (rs1_data >= rs2_data) jump_addr_reg = pc + imm;
 
-            // Load
-            ALU_LB: begin
-                read_addr_reg = rs1_data + imm;
-                temp_data = pmem_read(read_addr_reg);
-                case (read_addr_reg[1:0])
-                    2'b00: result_reg = {{24{temp_data[7]}},  temp_data[7:0]};
-                    2'b01: result_reg = {{24{temp_data[15]}}, temp_data[15:8]};
-                    2'b10: result_reg = {{24{temp_data[23]}}, temp_data[23:16]};
-                    2'b11: result_reg = {{24{temp_data[31]}}, temp_data[31:24]};
-                endcase
-            end
-            ALU_LH: begin
-                read_addr_reg = rs1_data + imm;
-                temp_data = pmem_read(read_addr_reg);
-                case (read_addr_reg[1])
-                    1'b0: result_reg = {{16{temp_data[15]}}, temp_data[15:0]};
-                    1'b1: result_reg = {{16{temp_data[31]}}, temp_data[31:16]};
-                endcase
-            end
-            ALU_LW: begin
-                read_addr_reg = rs1_data + imm;
-                result_reg    = pmem_read(read_addr_reg);
-            end
-            ALU_LBU: begin
-                read_addr_reg = rs1_data + imm;
-                temp_data = pmem_read(read_addr_reg);
-                case (read_addr_reg[1:0])
-                    2'b00: result_reg = {24'b0, temp_data[7:0]};
-                    2'b01: result_reg = {24'b0, temp_data[15:8]};
-                    2'b10: result_reg = {24'b0, temp_data[23:16]};
-                    2'b11: result_reg = {24'b0, temp_data[31:24]};
-                endcase
-            end
-            ALU_LHU: begin
-                read_addr_reg = rs1_data + imm;
-                temp_data = pmem_read(read_addr_reg);
-                case (read_addr_reg[1])
-                    1'b0: result_reg = {16'b0, temp_data[15:0]};
-                    1'b1: result_reg = {16'b0, temp_data[31:16]};
-                endcase
-            end
+            // Load（lb和lh手动进行拓展）
+            ALU_LB:  result_reg = {{24{vaddr_read(rs1_data + imm, 1)[7]}}, vaddr_read(rs1_data + imm, 1)[7:0]};
+            ALU_LH:  result_reg = {{16{vaddr_read(rs1_data + imm, 2)[15]}}, vaddr_read(rs1_data + imm, 2)[15:0]};
+            ALU_LW:  result_reg = vaddr_read(rs1_data + imm, 4);
+            ALU_LBU: result_reg = vaddr_read(rs1_data + imm, 1);
+            ALU_LHU: result_reg = vaddr_read(rs1_data + imm, 2);
 
             // Store
             ALU_SB: begin
-                read_addr_reg = rs1_data + imm;  // 临时用作 store_addr
-                case (read_addr_reg[1:0])  // offset
-                    2'b00: begin
-                        vmask = 8'b0001;
-                        temp_data = {24'b0, rs2_data[7:0]};  // 无移位
-                    end
-                    2'b01: begin
-                        vmask = 8'b0010;
-                        temp_data = {16'b0, rs2_data[7:0], 8'b0};  // 左移 1 字节
-                    end
-                    2'b10: begin
-                        vmask = 8'b0100;
-                        temp_data = {8'b0, rs2_data[7:0], 16'b0};  // 左移 2 字节
-                    end
-                    2'b11: begin
-                        vmask = 8'b1000;
-                        temp_data = {rs2_data[7:0], 24'b0};  // 左移 3 字节
-                    end
-                endcase
-                pmem_write(read_addr_reg & 32'hfffffffc, temp_data, vmask);  // 用对齐地址
+                mem_addr_reg = rs1_data + imm;
+                mem_len_reg = 1;
+                mem_data_reg = rs2_data;
             end
-
             ALU_SH: begin
-                read_addr_reg = rs1_data + imm;
-                case (read_addr_reg[1])  // offset for halfword
-                    1'b0: begin
-                        vmask = 8'b0011;
-                        temp_data = {16'b0, rs2_data[15:0]};  // 无移位
-                    end
-                    1'b1: begin
-                        vmask = 8'b1100;
-                        temp_data = {rs2_data[15:0], 16'b0};  // 左移 16 位
-                    end
-                endcase
-                pmem_write(read_addr_reg & 32'hfffffffc, temp_data, vmask);  // 对齐地址
+                mem_addr_reg = rs1_data + imm;
+                mem_len_reg = 2;
+                mem_data_reg = rs2_data;
             end
-
             ALU_SW: begin
-                read_addr_reg = rs1_data + imm;
-                pmem_write(read_addr_reg & 32'hfffffffc, rs2_data, 8'b1111);  // 假设 SW 对齐，或类似处理
+                mem_addr_reg = rs1_data + imm;
+                mem_len_reg = 4;
+                mem_data_reg = rs2_data;
             end
 
             // 系统
-            // ALU_ECALL,
+            // ALU_ECALL:
             ALU_EBREAK: is_ebreak_reg = 1'h1;
 
             default: result_reg = 32'h0;
@@ -229,5 +174,8 @@ module ysyx_25040105_EXU(
     assign alu_result = result_reg;
     assign jump_addr  = jump_addr_reg;
     assign is_ebreak  = is_ebreak_reg;
+    assign mem_addr   = mem_addr_reg;
+    assign mem_len    = mem_len_reg;
+    assign mem_data   = mem_data_reg;
 
 endmodule

@@ -6,7 +6,8 @@ module ysyx_25040105_IDU (
     output [31:0]   imm     ,   // 生成的立即数
     output          reg_wen ,   // 寄存器写使能信号
     output [7:0]    alu_op  ,   // ALU操作控制信号
-    output          jump_en     // 跳转使能信号
+    output          jump_en ,   // 跳转使能信号
+    output          mem_wen     // 内存写使能
 );
 
     // ---------------- opcode 定义 ----------------
@@ -145,9 +146,12 @@ module ysyx_25040105_IDU (
     reg reg_wen_reg;
 
     // ---------------- 跳转使能信号 ----------------
-    assign jump_en = (opcode == OPCODE_JAL || 
-                      opcode == OPCODE_JALR ||
-                      opcode == OPCODE_BRANCH);
+    assign jump_en = (opcode == OPCODE_JAL    || 
+                      opcode == OPCODE_JALR   ||
+                      opcode == OPCODE_BRANCH   );
+
+    // --------------- 内存写使能信号 ---------------
+    assign mem_wen = (opcode == OPCODE_STORE);
 
     always @(*) begin
         alu_op_reg  = 8'h0;

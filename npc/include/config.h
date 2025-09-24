@@ -19,6 +19,9 @@
 // ftrace
 // #define CONFIG_FTRACE 1
 
+// dtrace
+#define CONFIG_DTRACE 1
+
 // sdb -> watchpoint
 // #define CONFIG_WATCHPOINT 1
 #endif
@@ -32,14 +35,19 @@
 #define CONFIG_MSIZE 0x8000000
 #define CONFIG_MBASE 0x80000000
 #define CONFIG_MEM_RANDOM 1
-#define PMEM_LEFT  ((paddr_t)CONFIG_MBASE)
-#define PMEM_RIGHT ((paddr_t)CONFIG_MBASE + CONFIG_MSIZE - 1)
-#define RESET_VECTOR (PMEM_LEFT + CONFIG_PC_RESET_OFFSET)
+#define PAGE_SHIFT        12
+#define PAGE_SIZE         (1ul << PAGE_SHIFT)
+#define PAGE_MASK         (PAGE_SIZE - 1)
 
 // timer
 #define CONFIG_TIMER_GETTIMEOFDAY  1
 
 // reg
 #define REG_NUM 32
+
+// device
+#define CONFIG_DEVICE 1
+#define CONFIG_SERIAL_MMIO 0xa00003f8
+#define CONFIG_HAS_SERIAL 1
 
 #endif

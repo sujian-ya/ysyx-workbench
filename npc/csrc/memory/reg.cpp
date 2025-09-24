@@ -1,4 +1,4 @@
-#include <pmem.h>
+#include <reg.h>
 #include <common.h>
 #include <utils.h>
 #include <config.h>
@@ -13,12 +13,21 @@ const char *regs[] = {
 
 // 打印 NPC 的寄存器
 void npc_reg_display() {
-    printf("%s\n", ANSI_FMT("Displaying reg:", ANSI_FG_LIGHTPINK));
-    printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, cpu.pc, ANSI_NONE);
-    printf("%s%-14s %-14s %-14s%s\n", ANSI_FG_BLACK, "reg_name", "uint32_t", "int32_t", ANSI_NONE);
-    for (int i = 0; i < REG_NUM; i++) {
-        printf("| %s%-12s | 0x%-10x | %-12d%s\n", ANSI_FG_BLACK, regs[i], cpu.gpr[i], (int32_t)cpu.gpr[i], ANSI_NONE);
-    }
+	printf("Displaying reg(npc):\n");
+	printf("pc = 0x%-10x\n", (uint32_t)cpu.pc);
+	int cnt = 1;
+	for (int i = 0; i < REG_NUM; i++, cnt++) {
+		word_t val = cpu.gpr[i];
+		if (cnt % 4 == 0) {
+			printf("|%-8s 0x%-8.8x\n", regs[i], (uint32_t)val);
+		} else {
+			printf("|%-8s 0x%-8.8x  ", regs[i], (uint32_t)val);
+		}
+	}
+	// printf("|%-8s 0x%-8.8x  ", "mepc", (uint32_t)cpu.mepc);
+	// printf("|%-8s 0x%-8.8x  ", "mstatus", (uint32_t)cpu.mstatus);
+	// printf("|%-8s 0x%-8.8x  ", "mcause", (uint32_t)cpu.mcause);
+	// printf("|%-8s 0x%-8.8x\n", "mtvec", (uint32_t)cpu.mtvec);
 }
 
 word_t npc_reg_str2val(const char *s, bool *success) {
