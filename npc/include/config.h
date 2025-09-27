@@ -6,7 +6,7 @@
 #define CONFIG_ISA_riscv 1
 
 // trace
-#define CONFIG_TRACE 1
+// #define CONFIG_TRACE 1
 #if defined(CONFIG_TRACE)
 // itrace
 // #define CONFIG_ITRACE 1
@@ -27,7 +27,7 @@
 #endif
 
 // difftest
-// #define CONFIG_DIFFTEST 1
+#define CONFIG_DIFFTEST 1
 
 // memory
 #define CONFIG_PC_RESET_OFFSET 0x0
@@ -53,7 +53,9 @@
 #define CONFIG_SERIAL_MMIO 0xa00003f8
 #define CONFIG_I8042_DATA_MMIO 0xa0000060
 #define CONFIG_VGA_CTL_MMIO 0xa0000100
+
 #define CONFIG_HAS_SERIAL 1
 #define CONFIG_HAS_TIMER 1
+#define CONFIG_HAS_KEYBOARD 1
 
 #endif
