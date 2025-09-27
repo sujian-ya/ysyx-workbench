@@ -11,6 +11,8 @@ Vysyx_25040105_soc_top* top = NULL;
 VerilatedVcdC* tfp = NULL;
 extern NPCState npc_state;
 extern CPU_state cpu;
+// 默认关闭波形生成
+bool wave_enabled = false;
 
 void sim_init();
 void sim_exit();
@@ -39,23 +41,33 @@ void sim_init() {
     contextp = new VerilatedContext;
     contextp->traceEverOn(true);
     top = new Vysyx_25040105_soc_top(contextp);
-    tfp = new VerilatedVcdC;
-    top->trace(tfp, 99);
-    // 定义波形文件的输出路径
-    tfp->open("./build/waveform.vcd");
+    if (wave_enabled) {
+        tfp = new VerilatedVcdC;
+        top->trace(tfp, 99);
+        // 定义波形文件的输出路径
+        tfp->open("./build/waveform.vcd");
+    } else {
+        tfp = NULL;
+    }
 }
 
 void sim_exit() {
-    tfp->close();
+    if (tfp != NULL) { 
+        tfp->close();
+        delete tfp;
+    }
     delete top;
     delete contextp;
 }
 
 void single_cycle(Vysyx_25040105_soc_top &dut) {
-    dut.clk = 0; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
-    dut.clk = 1; dut.eval(); contextp->timeInc(1);tfp->dump(contextp->time());
-    sim_get_pc(); sim_get_regs();
+    dut.clk = 0; dut.eval(); contextp->timeInc(1);
+    if(wave_enabled) tfp->dump(contextp->time());
+    
+    dut.clk = 1; dut.eval(); contextp->timeInc(1);
+    if(wave_enabled) tfp->dump(contextp->time());
     // 在下降沿读取 pc 和 寄存器
+    sim_get_pc(); sim_get_regs();
 }
 
 void reset(int n) {
