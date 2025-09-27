@@ -76,6 +76,7 @@ module ysyx_25040105_EXU(
     // ---------------- 内部寄存器 ----------------
     reg        is_ebreak_reg;
     reg [31:0] result_reg;
+    reg [31:0] temp_data;
     reg [31:0] jump_addr_reg;
     reg [31:0]  mem_addr_reg;
     reg [31:0]   mem_len_reg;
@@ -85,6 +86,7 @@ module ysyx_25040105_EXU(
     always @(*) begin
         is_ebreak_reg = 1'h0;
         result_reg    = 32'h0;
+        temp_data     = 32'h0;
         jump_addr_reg = pc + 4;
         mem_addr_reg  = 32'h8000_0000;
         mem_len_reg   = 32'h1;
@@ -140,8 +142,14 @@ module ysyx_25040105_EXU(
             ALU_BGEU:  if (rs1_data >= rs2_data) jump_addr_reg = pc + imm;
 
             // Load（lb和lh手动进行拓展）
-            ALU_LB:  result_reg = {{24{vaddr_read(rs1_data + imm, 1)[7]}}, vaddr_read(rs1_data + imm, 1)[7:0]};
-            ALU_LH:  result_reg = {{16{vaddr_read(rs1_data + imm, 2)[15]}}, vaddr_read(rs1_data + imm, 2)[15:0]};
+            ALU_LB:  begin
+                temp_data = vaddr_read(rs1_data + imm, 1);
+                result_reg = {{24{temp_data[7]}}, temp_data[7:0]};
+            end
+            ALU_LH:  begin
+                temp_data = vaddr_read(rs1_data + imm, 2);
+                result_reg = {{16{temp_data[15]}}, temp_data[15:0]};
+            end
             ALU_LW:  result_reg = vaddr_read(rs1_data + imm, 4);
             ALU_LBU: result_reg = vaddr_read(rs1_data + imm, 1);
             ALU_LHU: result_reg = vaddr_read(rs1_data + imm, 2);

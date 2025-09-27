@@ -14,5 +14,6 @@
 !init.sh
 /fceux-am
 /nvboard
+/verilator
 /oss-cad-suite
 /yosys-sta/am-kernels
