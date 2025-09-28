@@ -32,7 +32,7 @@ CSRCS = $(shell find $(abspath ./csrc) -type f \( -name "*.c" -o -name "*.cc" -o
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 # LDFLAGS += -lreadline -ltermcap $(DIFFTEST_LDFLAGS)# 链接器选项，包括 readline 和 termcap
-LDFLAGS += -lreadline -ltermcap
+LDFLAGS += -lreadline -ltermcap $(shell sdl2-config --libs)
 
 $(BIN): $(VSRCS) $(CSRCS)
 	@rm -rf $(OBJ_DIR)
