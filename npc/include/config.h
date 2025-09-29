@@ -30,7 +30,7 @@
 #endif
 
 // difftest
-#define CONFIG_DIFFTEST 1
+// #define CONFIG_DIFFTEST 1
 
 // memory
 #define CONFIG_PC_RESET_OFFSET 0x0

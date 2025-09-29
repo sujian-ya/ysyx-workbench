@@ -11,6 +11,7 @@ void init_mem();
 void init_difftest(char *ref_so_file, long img_size, int port);
 void init_device();
 void init_sdb();
+void init_isa();
 void init_disasm();
 
 extern unsigned char npc_logo[];
@@ -49,9 +50,7 @@ word_t default_img[] = {
 static long load_img() {
   if (img_file == NULL) {
     Log("No image is given. Use the default build-in image.");
-    long size = sizeof(default_img);
-    memcpy(guest_to_host(RESET_VECTOR), default_img, size);
-    return size; // 返回默认镜像的字节大小
+    return 4096; // built-in image size
   }
 
   FILE *fp = fopen(img_file, "rb");
@@ -122,7 +121,7 @@ void init_monitor(int argc, char *argv[]) {
   IFDEF(CONFIG_DEVICE, init_device());
 
   /* Perform ISA dependent initialization. */
-  // init_isa();
+  init_isa();
 
   /* Load the image to memory. This will overwrite the built-in image. */
   long img_size = load_img();
