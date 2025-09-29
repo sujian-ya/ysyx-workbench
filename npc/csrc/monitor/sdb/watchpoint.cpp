@@ -135,37 +135,57 @@ void sdb_watchpoint_display() {
 	}
 }
 
+void check_watchpoint() {
 #ifdef CONFIG_WATCHPOINT
-void check_watchpoint(void) {
-	if (npc_state.state == NPC_END) {
-		return;
-	}
-	int cnt = 0;
-	printf("%s\n", ANSI_FMT("Checking watchpoint:", ANSI_FG_LIGHTPINK));
-	printf("pc = %s%08x%s\n", ANSI_BG_LIGHTPINK, cpu.pc, ANSI_NONE);
-	printf("%-14s %-14s %-14s %-14s\n", "watchpoint", "old_value", "new_value", "expression");
-	for (WP *wp = head; wp; wp = wp->next, cnt++) {
-		bool success = true;
-		word_t cur_value = expr(wp->expr, &success);
+    if (npc_state.state == NPC_END) {
+        return;
+    }
 
-		if (!success) {
-			printf("Watchpoint %02d expression invalid: %s\n", wp->NO, wp->expr);
-			continue;
-		}
+    int total_cnt = 0;                // 总监视点数量
+    int changed_cnt = 0;              // 发生变化的监视点数量
+    WP* changed_wps[NR_WP];              // 存储发生变化的监视点（可根据需要调整大小）
+    word_t old_values[NR_WP], new_values[NR_WP];  // 存储对应的值变化
 
-		if (cur_value != wp->value) {
-			npc_state.state = NPC_STOP;
-			printf("| %-12d | 0x%-10x | 0x%-10x | %s\n",
-					wp->NO, (uint32_t)wp->value, (uint32_t)cur_value, wp->expr);
-			wp->value = cur_value;
-		} else {
-			printf("| %-12d | (no change)\n", wp->NO);
-			npc_state.state =  NPC_RUNNING;
-		}
-	}
-	if (!cnt) {
-		printf("(no watchpoint)\n");
-	}
-	return;
-}
+    // 第一次遍历：收集所有发生变化的监视点
+    for (WP *wp = head; wp; wp = wp->next, total_cnt++) {
+        bool success = true;
+        word_t cur_value = expr(wp->expr, &success);
+
+        if (!success) {
+            continue;  // 跳过表达式无效的监视点
+        }
+
+        if (cur_value != wp->value) {
+            // 记录变化的监视点信息
+            if (changed_cnt < NR_WP) {  // 防止数组越界
+                changed_wps[changed_cnt] = wp;
+                old_values[changed_cnt] = wp->value;
+                new_values[changed_cnt] = cur_value;
+                changed_cnt++;
+            }
+        }
+    }
+
+    // 只有当有监视点发生变化时才输出信息
+    if (changed_cnt > 0) {
+        printf("\nChecking watchpoint:\n");
+        printf("%-12s %-12s %-12s %-12s\n", "PC", "Watchpoint", "Old_value", "New_value");
+        
+        // 输出所有变化的监视点信息
+        npc_state.state = NPC_STOP;
+        for (int i = 0; i < changed_cnt; i++) {
+            WP* wp = changed_wps[i];
+            printf("0x%-10x %-12d 0x%-10x 0x%-10x\n",
+                    cpu.pc, wp->NO, 
+                    (uint32_t)old_values[i], 
+                    (uint32_t)new_values[i]);
+            wp->value = new_values[i];  // 更新监视点的值
+        }
+    } else {
+        // 没有变化时保持运行状态，不输出任何信息
+        npc_state.state = NPC_RUNNING;
+    }
+
+    return;
 #endif
+}

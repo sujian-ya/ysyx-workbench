@@ -49,6 +49,10 @@ module ysyx_25040105_IDU (
     localparam FUNCT3_SH        = 3'b001;
     localparam FUNCT3_SW        = 3'b010;
 
+    localparam FUNCT3_EM        = 3'b000;
+    localparam FUNCT3_CSRRW     = 3'b001;
+    localparam FUNCT3_CSRRS     = 3'b010;
+
     // ---------------- ALU操作码(与EXU保持一致) ----------------
     // 算术逻辑
     localparam ALU_ADD   = 8'h00;
@@ -104,11 +108,15 @@ module ysyx_25040105_IDU (
     // 系统
     localparam ALU_ECALL  = 8'h25;
     localparam ALU_EBREAK = 8'h26;
+    localparam ALU_CSRRW  = 8'h27;
+    localparam ALU_CSRRS  = 8'h28;
+    localparam ALU_MRET   = 8'h29;
 
     // ---------------- 指令字段提取 ----------------
-    wire [6:0] opcode = inst[6:0];
-    wire [2:0] funct3 = inst[14:12];
-    wire [6:0] funct7 = inst[31:25];
+    wire [6:0]  opcode  = inst[6:0];
+    wire [2:0]  funct3  = inst[14:12];
+    wire [6:0]  funct7  = inst[31:25];
+    wire [11:0] funct12 = inst[31:20];
 
     assign rs1 = inst[19:15];
     assign rs2 = inst[24:20];
@@ -120,7 +128,8 @@ module ysyx_25040105_IDU (
         case (opcode)
             OPCODE_OP_IMM,
             OPCODE_LOAD,
-            OPCODE_JALR:
+            OPCODE_JALR,
+            OPCODE_SYSTEM:
                 imm_reg = {{20{inst[31]}}, inst[31:20]}; // I-type
 
             OPCODE_STORE:
@@ -148,7 +157,8 @@ module ysyx_25040105_IDU (
     // ---------------- 跳转使能信号 ----------------
     assign jump_en = (opcode == OPCODE_JAL    || 
                       opcode == OPCODE_JALR   ||
-                      opcode == OPCODE_BRANCH   );
+                      opcode == OPCODE_BRANCH ||
+                     (opcode == OPCODE_SYSTEM && (alu_op_reg == ALU_ECALL || alu_op_reg == ALU_MRET)));
 
     // --------------- 内存写使能信号 ---------------
     assign mem_wen = (opcode == OPCODE_STORE);
@@ -250,9 +260,24 @@ module ysyx_25040105_IDU (
 
             // ---------------- SYSTEM ----------------
             OPCODE_SYSTEM: begin
-                case (inst[31:20]) // 根据 funct12 判断
-                    12'h000: begin alu_op_reg = ALU_ECALL;  reg_wen_reg = 1'b0; end
-                    12'h001: begin alu_op_reg = ALU_EBREAK; reg_wen_reg = 1'b0; end
+                reg_wen_reg = 1'b0; // 默认不写寄存器
+                case (funct3)
+                    FUNCT3_EM: begin
+                        case (funct12)
+                            12'h000: alu_op_reg = ALU_ECALL;    // ECALL
+                            12'h001: alu_op_reg = ALU_EBREAK;   // EBREAK
+                            12'h302: alu_op_reg = ALU_MRET;     // MRET
+                            default: alu_op_reg = 8'hx;
+                        endcase
+                    end
+                    FUNCT3_CSRRW: begin
+                        alu_op_reg = ALU_CSRRW;  // CSRW
+                        if (rd != 5'b0) reg_wen_reg = 1'b1;
+                    end
+                    FUNCT3_CSRRS: begin
+                        alu_op_reg = ALU_CSRRS; // CSRR
+                        if (rd != 5'b0) reg_wen_reg = 1'b1;
+                    end
                     default: alu_op_reg = 8'hx;
                 endcase
             end

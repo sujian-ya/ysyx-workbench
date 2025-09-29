@@ -6,4 +6,6 @@
 // 声明cpu_exec函数
 void cpu_exec(uint64_t n);
 
+void assert_fail_msg();
+
 #endif

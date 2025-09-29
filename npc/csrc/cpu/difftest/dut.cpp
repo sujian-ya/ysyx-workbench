@@ -109,10 +109,10 @@ void diff_reg_display(CPU_state *ref_r) {
 			printf("|%-8s 0x%-8.8x  ", regs[i], (uint32_t)val);
 		}
 	}
-	// printf("|%-8s 0x%-8.8x  ", "mepc", (uint32_t)ref_r->mepc);
-	// printf("|%-8s 0x%-8.8x  ", "mstatus", (uint32_t)ref_r->mstatus);
-	// printf("|%-8s 0x%-8.8x  ", "mcause", (uint32_t)ref_r->mcause);
-	// printf("|%-8s 0x%-8.8x\n", "mtvec", (uint32_t)ref_r->mtvec);
+	printf("|%-8s 0x%-8.8x  ", "mepc", (uint32_t)ref_r->mepc);
+	printf("|%-8s 0x%-8.8x  ", "mstatus", (uint32_t)ref_r->mstatus);
+	printf("|%-8s 0x%-8.8x  ", "mcause", (uint32_t)ref_r->mcause);
+	printf("|%-8s 0x%-8.8x\n", "mtvec", (uint32_t)ref_r->mtvec);
 }
 
 static void checkregs(CPU_state *ref, vaddr_t pc) {

@@ -8,7 +8,8 @@ const char *regs[] = {
   "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
   "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
   "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
-  "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
+  "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6",
+  "mepc", "mstatus", "mcause", "mtvec"
 };
 
 // 打印 NPC 的寄存器
@@ -24,10 +25,10 @@ void npc_reg_display() {
 			printf("|%-8s 0x%-8.8x  ", regs[i], (uint32_t)val);
 		}
 	}
-	// printf("|%-8s 0x%-8.8x  ", "mepc", (uint32_t)cpu.mepc);
-	// printf("|%-8s 0x%-8.8x  ", "mstatus", (uint32_t)cpu.mstatus);
-	// printf("|%-8s 0x%-8.8x  ", "mcause", (uint32_t)cpu.mcause);
-	// printf("|%-8s 0x%-8.8x\n", "mtvec", (uint32_t)cpu.mtvec);
+	printf("|%-8s 0x%-8.8x  ", "mepc", (uint32_t)cpu.mepc);
+	printf("|%-8s 0x%-8.8x  ", "mstatus", (uint32_t)cpu.mstatus);
+	printf("|%-8s 0x%-8.8x  ", "mcause", (uint32_t)cpu.mcause);
+	printf("|%-8s 0x%-8.8x\n", "mtvec", (uint32_t)cpu.mtvec);
 }
 
 word_t npc_reg_str2val(const char *s, bool *success) {

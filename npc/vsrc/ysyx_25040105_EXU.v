@@ -8,14 +8,16 @@ module ysyx_25040105_EXU(
     output  [31:0]  alu_result,
     output  [31:0]  jump_addr,
     output  [31:0]  mem_addr,
-    output  [31:0]   mem_len,
+    output  [31:0]  mem_len,
     output  [31:0]  mem_data
 );
     // ---------------- DPI-C 函数声明 ----------------
-    // 从虚拟地址读取指定长度的数据
     import "DPI-C" function int vaddr_read(input int raddr, input int len);
-    // 向虚拟地址写入指定长度和数据
     import "DPI-C" function void vaddr_write(input int addr, input int len, input int data);
+    import "DPI-C" function int csr_read(input int csr_addr);
+    import "DPI-C" function void csr_write(input int csr_addr, input int data);
+    import "DPI-C" function int isa_raise_intr(input int NO, input int epc);
+    import "DPI-C" function int isa_ret_intr();
 
     // ---------------- ALU op 定义 ----------------
     // 算术逻辑
@@ -72,6 +74,9 @@ module ysyx_25040105_EXU(
     // 系统
     localparam ALU_ECALL  = 8'h25;
     localparam ALU_EBREAK = 8'h26;
+    localparam ALU_CSRRW  = 8'h27;
+    localparam ALU_CSRRS  = 8'h28;
+    localparam ALU_MRET   = 8'h29;
 
     // ---------------- 内部寄存器 ----------------
     reg        is_ebreak_reg;
@@ -172,9 +177,17 @@ module ysyx_25040105_EXU(
             end
 
             // 系统
-            // ALU_ECALL:
             ALU_EBREAK: is_ebreak_reg = 1'h1;
-
+            ALU_ECALL: jump_addr_reg  = isa_raise_intr(32'hB, pc);
+            ALU_MRET: jump_addr_reg = isa_ret_intr();
+            ALU_CSRRW: begin
+                result_reg = csr_read(imm);
+                csr_write(imm, rs1_data);
+            end
+            ALU_CSRRS:  begin
+                result_reg = csr_read(imm);
+                if (rs1_data != 32'h0) csr_write(imm, result_reg | rs1_data);
+            end
             default: result_reg = 32'h0;
         endcase
     end

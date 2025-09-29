@@ -3,11 +3,16 @@ module ysyx_25040105_soc_top (
     input             rst,
     output     [31:0] inst,
     output reg [31:0] pc,
+    output reg [31:0] mepc,
+    output reg [31:0] mstatus,
+    output reg [31:0] mcause,
+    output reg [31:0] mtvec,
     output reg [31:0] rf [0:31] // 便于查看寄存器波形
 );
 
 initial begin
     pc = 32'h8000_0000;
+    mstatus = 32'h1800;
 end
 
 // 导入DPI-C函数
@@ -15,6 +20,10 @@ import "DPI-C" function void sys_exit(int exit_state);
 import "DPI-C" function void sim_get_inst(input bit [31:0] rtl_inst[1]);
 import "DPI-C" function int vaddr_read(input int raddr, input int len);
 import "DPI-C" function void vaddr_write(input int addr, input int len, input int data);
+import "DPI-C" function int csr_read(input int csr_addr);
+import "DPI-C" function void csr_write(input int csr_addr, input int data);
+import "DPI-C" function int isa_raise_intr(input int NO, input int epc);
+import "DPI-C" function int isa_ret_intr();
 
 // IFU
 wire jump_en; // 跳转使能信号

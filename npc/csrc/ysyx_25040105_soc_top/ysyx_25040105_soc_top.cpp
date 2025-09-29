@@ -26,7 +26,15 @@ extern "C" void sys_exit(int exit_state) {
 }
 
 void sim_get_regs() {
-    memcpy(cpu.gpr, top->rf, 32 * sizeof(uint32_t));
+    memcpy(cpu.gpr,     top->rf,   32 * sizeof(uint32_t));
+    // memcpy(cpu.mepc,    top->mepc,      sizeof(uint32_t));
+    // memcpy(cpu.mstatus, top->mstatus,   sizeof(uint32_t));
+    // memcpy(cpu.mcause,  top->mcause,    sizeof(uint32_t));
+    // memcpy(cpu.mtvec,   top->mtvec,     sizeof(uint32_t));
+    cpu.mepc = (word_t)top->mepc;
+    cpu.mstatus = (word_t)top->mstatus;
+    cpu.mcause = (word_t)top->mcause;
+    cpu.mtvec = (word_t)top->mtvec;
 }
 
 void sim_get_pc() {

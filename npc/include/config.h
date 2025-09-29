@@ -22,6 +22,9 @@
 // dtrace
 #define CONFIG_DTRACE 1
 
+// etrace
+// #define CONFIG_ETRACE 1
+
 // sdb -> watchpoint
 // #define CONFIG_WATCHPOINT 1
 #endif
